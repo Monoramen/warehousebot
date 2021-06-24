@@ -15,8 +15,7 @@ import os.path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
-print(BASE_DIR)
-print(SITE_ROOT)
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -25,7 +24,7 @@ print(SITE_ROOT)
 SECRET_KEY = 'django-insecure-w556g6vv$n_wx24t#l)$)wsw5tka@wb6e=!lv6y4q&oif&pobb'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -56,21 +55,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'backend.urls'
 
-#TEMPLATES = [
-#    {
-#        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-#        'DIRS': [],
-#        'APP_DIRS': True,
-#        'OPTIONS': {
-#            'context_processors': [
-#                'django.template.context_processors.debug',
-#                'django.template.context_processors.request',
-#                'django.contrib.auth.context_processors.auth',
-#                'django.contrib.messages.context_processors.messages',
-#            ],
-#        },
-#    },
-##]
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
