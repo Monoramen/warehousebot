@@ -17,8 +17,7 @@ import os.path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
-print(BASE_DIR)
-
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
@@ -122,13 +121,16 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT= os.path.join(BASE_DIR,'static')
- 
+    # Static content is saved to here --
+STATIC_ROOT = os.path.join(PROJECT_ROOT,'static-root') # this folder is used to collect static files in production. not used in development
+STATIC_URL =  "/static/"
+STATICFILES_DIRS = (
+    ('', os.path.join(PROJECT_ROOT,'static')), #store site-specific media here.
+    )
 STATICFILES_FINDERS = (
-'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-'django.contrib.staticfiles.finders.FileSystemFinder',
-)
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    )
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
