@@ -122,11 +122,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
     # Static content is saved to here --
-STATIC_ROOT = os.path.join(PROJECT_ROOT,'static-root') # this folder is used to collect static files in production. not used in development
+# this folder is used to collect static files in production. not used in development
 STATIC_URL =  "/static/"
-STATICFILES_DIRS = (
-    ('', os.path.join(PROJECT_ROOT,'static')), #store site-specific media here.
-    )
+STATIC_ROOT = os.path.join(BASE_DIR,'static') 
+
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
