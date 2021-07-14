@@ -1,0 +1,14 @@
+[Unit]
+Description=uWSGI service warehousebot
+After=network.target
+
+[Service]
+User=www-data
+Group=www
+WorkingDirectory=/home/ramen/www/warehousebot
+Enviroment="PYTHONPATH=/home/ramen/www/warehousebot"
+ExecStart=/home/ramen/www/warehousebot/env/bin/python  /home/ramen/www/warehousebot/backend/manage.py bot
+
+
+[Install]
+WantedBy=multi-user.target
