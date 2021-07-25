@@ -14,6 +14,7 @@ from telegram.ext import (CallbackContext, Filters,
     CommandHandler, CallbackContext,
     Filters, ConversationHandler,
     InlineQueryHandler,
+    CallbackQueryHandler,
 )
 from telegram.update import Update
 from telegram.utils.request import Request
@@ -26,6 +27,8 @@ from tgclient.services.message_db import show_all_item
 from django.db.models import Q
 from .messages import MESSAGE
 from django.conf import settings
+
+
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
 )
@@ -57,6 +60,12 @@ def help_command(update: Update, _: CallbackContext) -> None:
     update.message.reply_text(MESSAGE['help'], parse_mode='Markdown')
 
 divide_icon = 'http://s1.iconbird.com/ico/0512/48pxwebiconset/w48h481337350005System.png'
+
+
+def photo(update: Update, context: CallbackContext) -> None:
+    print('message.photo =', update.message.photo)
+    update.message.reply_text('Photo')
+
 
 def inlinequery(update: Update, _: CallbackContext) -> None:
     """Handle the inline query."""
@@ -126,6 +135,7 @@ class Command(BaseCommand):
         dp.add_handler(CommandHandler("help", help_command))
         dp.add_handler(InlineQueryHandler(inlinequery))
         dp.add_handler(CommandHandler('showall', show_warehouse))
+        dp.add_handler(MessageHandler(Filters.photo & ~Filters.command, photo))
         dp.add_error_handler(error)
         
         updater.start_polling()
