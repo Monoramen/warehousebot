@@ -54,4 +54,4 @@ class WarehouseItemAdmin(ImportExportActionModelAdmin):
     autocomplete_fields = ['product']
     search_fields = ['product__name', 'rack']
     list_filter = ('product', 'receipt_date','rack')
-    list_display = ('product', 'quantity', 'status', 'rack', 'receipt_date', 'comments')
+    list_display = ('product', 'quantity', 'status', 'rack', 'receipt_date', 'comments', 'qr_code')

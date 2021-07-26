@@ -1,8 +1,11 @@
 from abc import abstractproperty
+from re import T
 from django.db import models
 from .rack_choices import  RACK_CHOICES
-
-
+import qrcode
+from io import BytesIO
+from django.core.files import File
+from PIL import Image, ImageDraw
 # Create your models here.
 
 class Profile(models.Model):
@@ -69,6 +72,7 @@ class WarehouseItem(ItemProduct):
     rack = models.CharField(max_length=10, choices=RACK_CHOICES, default='', verbose_name='Место') 
     receipt_date = models.DateField(default='', editable=True, null=True, blank=True, verbose_name='Дата прибытия')
     comments = models.TextField(default='', null=True, blank=True, verbose_name='Комментарий')
+    qr_code = models.ImageField(upload_to='qr_codes', blank=True)
     
     class Meta:
         verbose_name = 'Товар'
@@ -76,4 +80,15 @@ class WarehouseItem(ItemProduct):
 
     def __str__(self):
         return '"{}" - {} шт | {}'.format(self.product.name, self.quantity, self.rack)
-        
+
+    def save(self, *args, **kwargs):
+        qrcode_img = qrcode.make(self.id)
+        canvas = Image.new('RGB', (290, 290), 'green')
+        draw = ImageDraw.Draw(canvas)
+        canvas.paste(qrcode_img)
+        fname = f'qr_code-{self.id}' + '.png'
+        buffer = BytesIO()
+        canvas.save(buffer, 'PNG')
+        self.qr_code.save(fname, File(buffer), save=False)
+        canvas.close()
+        super().save(*args, **kwargs)

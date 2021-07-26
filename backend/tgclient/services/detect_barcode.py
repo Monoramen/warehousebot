@@ -1,7 +1,10 @@
 import numpy as np
 import argparse
 import cv2
- 
+from PIL import Image
+from pyzbar.pyzbar import decode
+
+
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--image", required = True, help = "path to the image file")
@@ -47,6 +50,8 @@ box = np.int0(cv2.cv2.boxPoints(rect))
  
 # draw a bounding box arounded the detected barcode and display the
 # image
+result = decode(image)
+print(result)
 cv2.drawContours(image, [box], -1, (0, 255, 0), 3)
 cv2.imshow("Image", image)
 cv2.waitKey(0)
