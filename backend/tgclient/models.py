@@ -1,12 +1,17 @@
 from abc import abstractproperty
 from re import T
+from django.core.files import storage
 from django.db import models
 from .rack_choices import  RACK_CHOICES
 import qrcode
 from io import BytesIO
 from django.core.files import File
 from PIL import Image, ImageDraw
+from django.core.files.storage import FileSystemStorage
 # Create your models here.
+
+media = FileSystemStorage(location='media')
+
 
 class Profile(models.Model):
 
@@ -41,7 +46,6 @@ class Product(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.TextField(default='', blank=True, verbose_name='Наименование')
     article = models.CharField(default='', blank=True, max_length=10, verbose_name='Артикул')
-    picture = models.ImageField(upload_to='uploads/', blank=True,  default=None)
     class Meta:
         verbose_name = 'Товар'
         verbose_name_plural = '1. Наименования'
@@ -49,8 +53,9 @@ class Product(models.Model):
     def __str__(self):
         return f'{self.name}'
 
+
+
 class ItemProduct(models.Model):
-    
 
     class Meta:
         abstract = True
@@ -58,9 +63,12 @@ class ItemProduct(models.Model):
         return f'{self.product}'
 
 
+
+
 class WarehouseItem(ItemProduct):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='Товар')
     quantity = models.IntegerField(null=True,verbose_name='кол-во')
+    
     WAREHOUSE = 'Склад'
     WAIT = 'Ожидается'
 
@@ -72,8 +80,8 @@ class WarehouseItem(ItemProduct):
     rack = models.CharField(max_length=10, choices=RACK_CHOICES, default='', verbose_name='Место') 
     receipt_date = models.DateField(default='', editable=True, null=True, blank=True, verbose_name='Дата прибытия')
     comments = models.TextField(default='', null=True, blank=True, verbose_name='Комментарий')
-    qr_code = models.ImageField(upload_to='qr_codes', blank=True)
-    
+    qr_code = models.ImageField(storage=media,  upload_to='uploads/qr_codes/%d-%m-%Y', blank=True, null=True,)
+
     class Meta:
         verbose_name = 'Товар'
         verbose_name_plural = '2. Товары'
@@ -82,13 +90,23 @@ class WarehouseItem(ItemProduct):
         return '"{}" - {} шт | {}'.format(self.product.name, self.quantity, self.rack)
 
     def save(self, *args, **kwargs):
-        qrcode_img = qrcode.make(self.id)
-        canvas = Image.new('RGB', (290, 290), 'green')
-        draw = ImageDraw.Draw(canvas)
+        qr = qrcode.QRCode(
+            version=8,
+            error_correction=qrcode.constants.ERROR_CORRECT_M,
+            box_size=10,
+            border=1,
+        )
+        qr.add_data(self.product.name)
+        qr.make(fit = True)
+        qrcode_img = qr.make_image(fill_color = "black", back_color = '#d4f4f5')
+        print(qrcode_img.size)
+        
+        canvas = Image.new('RGB', (qrcode_img.size), 'white')
         canvas.paste(qrcode_img)
-        fname = f'qr_code-{self.id}' + '.png'
+        canvas.convert('RGBA')
+        fname = f'qr_code-{self.id}.png'
         buffer = BytesIO()
-        canvas.save(buffer, 'PNG')
+        canvas.save(buffer,'PNG')
         self.qr_code.save(fname, File(buffer), save=False)
         canvas.close()
         super().save(*args, **kwargs)
