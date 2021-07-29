@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 import import_export
-from .models import Profile, Message, Product, WarehouseItem
+from .models import ProfileTelegram, Message, Product, WarehouseItem
 from import_export.admin import ImportExportActionModelAdmin
 from import_export import resources
 from import_export import fields
@@ -9,9 +9,9 @@ from import_export.widgets import ForeignKeyWidget
 from django.utils.html import format_html
 # Register your models here.
 
-@admin.register(Profile)
-class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('id', 'external_id', 'username')
+@admin.register(ProfileTelegram)
+class ProfileTelegramAdmin(admin.ModelAdmin):
+    list_display = ('tg_id', 'tg_username')
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):

@@ -19,14 +19,12 @@ from telegram.ext import (CallbackContext, Filters,
 from telegram.update import Update
 from telegram.utils.request import Request
 from telegram.utils.helpers import escape_markdown
-from tgclient.models import Message
-from tgclient.models import Profile
 from tgclient.models import WarehouseItem
-from tgclient.services.message_controller import add_update_info
-from tgclient.services.message_db import show_all_item
+from tgclient.services import message_controller
 from django.db.models import Q
 from .messages import MESSAGE
 from django.conf import settings
+from tgclient.services.message_controller import add_update_info
 
 
 logging.basicConfig(
@@ -51,6 +49,8 @@ def log_errors(f):
 def start(update: Update, _: CallbackContext) -> None:
     """Send a message when the command /start is issued."""
     logger.info('Command: %s', '/start was press')
+    message_controller.add_update_info(update.message)
+    
     update.message.reply_text(MESSAGE['start'], parse_mode='Markdown')
 
 
