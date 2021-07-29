@@ -57,7 +57,7 @@ class WarehouseItemAdmin(ImportExportActionModelAdmin):
     search_fields = ['product__name', 'rack']
     list_filter = ('product', 'receipt_date','rack')
     readonly_fields = ['get_image']
-    list_display = ('product', 'quantity', 'status', 'rack', 'receipt_date', 'comments','image_data' )
+    list_display = ('product', 'quantity', 'status', 'rack', 'receipt_date', 'comments',)
         
     def get_image(self, obj):
             return format_html('<img src="{}" width="100" height="auto"/>'.format(obj.qr_code.url))

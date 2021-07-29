@@ -44,7 +44,8 @@ class Message (models.Model):
 
 class Product(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.TextField(default='', blank=True, verbose_name='Наименование')
+    name = models.CharField(default='', blank=True, max_length=100, verbose_name='Наименование')
+    info = models.TextField(default='', blank=True, verbose_name='Информация')
     article = models.CharField(default='', blank=True, max_length=10, verbose_name='Артикул')
     class Meta:
         verbose_name = 'Товар'
@@ -64,7 +65,7 @@ class ItemProduct(models.Model):
 
 
 
-
+#Товар на полке и его количество на складе
 class WarehouseItem(ItemProduct):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='Товар')
     quantity = models.IntegerField(null=True,verbose_name='кол-во')
