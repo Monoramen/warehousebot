@@ -47,7 +47,7 @@ class WarehouseItemResource(resources.ModelResource):
 class ProductAdmin(ImportExportActionModelAdmin):
     resource_class = ProductResource
     search_fields = ['name', 'article']
-    list_display = ('name', 'article',)
+    list_display = ('name','info', 'article',)
 
 
 @admin.register(WarehouseItem)
