@@ -8,6 +8,7 @@ from django.conf import settings
 from django.db.models import query_utils
 from telegram import Bot
 from telegram import Update
+from telegram import PhotoSize
 from telegram import (InlineKeyboardMarkup, InlineKeyboardButton, InlineQueryResultArticle, ParseMode, InputTextMessageContent)
 from telegram.ext import (CallbackContext, Filters, 
     MessageHandler, Updater,
@@ -20,12 +21,12 @@ from telegram.update import Update
 from telegram.utils.request import Request
 from telegram.utils.helpers import escape_markdown
 from tgclient.models import WarehouseItem
-from tgclient.services import message_controller
+from tgclient.services.message import message_controller
 from django.db.models import Q
 from .messages import MESSAGE
 from django.conf import settings
-from tgclient.services.message_controller import add_update_info
-
+from tgclient.services.message.message_controller import add_update_info
+from tgclient.services.barcode.detect_barcode import detect_barcode
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -54,17 +55,18 @@ def start(update: Update, _: CallbackContext) -> None:
     update.message.reply_text(MESSAGE['start'], parse_mode='Markdown')
 
 
-def help_command(update: Update, _: CallbackContext) -> None:
+def help_command(update: Update, context: CallbackContext) -> None:
     logger.info('Command: %s', '/help')
     """Send a message when the command /help is issued."""
     update.message.reply_text(MESSAGE['help'], parse_mode='Markdown')
 
 divide_icon = 'http://s1.iconbird.com/ico/0512/48pxwebiconset/w48h481337350005System.png'
-
-
-def photo(update: Update, context: CallbackContext) -> None:
-    print('message.photo =', update.message.photo)
-    update.message.reply_text('Photo')
+def photo(update, context) -> None:
+    file_id = update.message.photo[-1].file_id
+    newFile=context.bot.get_file(file_id)
+    url= newFile.file_path
+    reply = detect_barcode(url)
+    update.message.reply_text(' Штрихкод {}'.format(reply),  parse_mode='Markdown')
 
 
 def inlinequery(update: Update, _: CallbackContext) -> None:
