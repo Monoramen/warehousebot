@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw
 from django.core.files.storage import FileSystemStorage
 # Create your models here.
 
-media = FileSystemStorage(location='media')
+media = FileSystemStorage(location='backend/media')
 
 
 # Create your models here
