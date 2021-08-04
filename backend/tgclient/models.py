@@ -112,7 +112,7 @@ class WarehouseItem(ItemProduct):
         )
         qr.add_data(self.product.name)
         qr.make(fit = True)
-        qrcode_img = qr.make_image(fill_color = "black", back_color = '#d4f4f5')
+        qrcode_img = qr.make_image(fill_color = "black", back_color = 'white')
         print(qrcode_img.size)
         
         canvas = Image.new('RGB', (qrcode_img.size), 'white')
