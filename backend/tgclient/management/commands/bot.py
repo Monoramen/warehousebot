@@ -99,14 +99,17 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
                         message_text= f'Ничего не найдено по запросу -> "{query}" ',
                     )
                 )
-            )     
+            )
+        
+        print(len(results))
         update.inline_query.answer(
             results=results,
             cache_time=20,
         )
-
+    except Exception as e:
+        print(e)
     except AttributeError as ex:
-        return   
+        return 
 
 
 def show_warehouse(update: Update, context: CallbackContext) -> str:    
