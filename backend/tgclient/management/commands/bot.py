@@ -79,13 +79,6 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
     query_list = WarehouseItem.objects.filter(Q(product__name__icontains=query))
     try:
         for i, (name) in enumerate(query_list):
-            #if name.product.picture != None:
-            #    picture = read(f'{name.product.picture}')
-            #    print(picture)
-            #else:
-            #    picture = divide_icon
-                
-
             results.append(
                 InlineQueryResultArticle(
                     id=i+1,

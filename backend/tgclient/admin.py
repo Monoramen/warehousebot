@@ -54,8 +54,8 @@ class ProductAdmin(ImportExportActionModelAdmin):
 class WarehouseItemAdmin(ImportExportActionModelAdmin):
     resource_class = WarehouseItemResource
     autocomplete_fields = ['product']
-    search_fields = ['product__name', 'rack']
-    list_filter = ('product', 'receipt_date','rack')
+    search_fields = ['product__name', 'product__info', 'rack']
+    list_filter = ('receipt_date','rack')
     readonly_fields = ['get_image']
     list_display = ('product', 'quantity', 'status', 'rack', 'receipt_date', 'comments',)
         
