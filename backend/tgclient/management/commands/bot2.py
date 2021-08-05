@@ -1,80 +1,121 @@
-from telegram import ChatAction,InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext.dispatcher import run_async
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters,CallbackQueryHandler,PicklePersistence
+from os import name
+import re
 import logging
-import os
-from functools import wraps
-import requests
+from uuid import uuid4
+from logging import error
+from django.core.management.base import BaseCommand
+from django.conf import settings
+from django.db.models import query_utils
+from telegram import Bot
+from telegram import Update
+from telegram import PhotoSize
+from telegram import (InlineKeyboardMarkup, InlineKeyboardButton, InlineQueryResultArticle, ParseMode, InputTextMessageContent)
+from telegram.ext import (CallbackContext, Filters, 
+    MessageHandler, Updater,
+    CommandHandler, CallbackContext,
+    Filters, ConversationHandler,
+    InlineQueryHandler,
+    CallbackQueryHandler,
+)
+from telegram.update import Update
+from telegram.utils.request import Request
+from telegram.utils.helpers import escape_markdown
+from tgclient.models import WarehouseItem
 
-api_key = os.environ.get("api_key","") # bot token
-token = os.environ.get("bot_token","") # api key from https://ocr.space/ocrapi
+from django.db.models import Q
+from .messages import MESSAGE
+from django.conf import settings
+from tgclient.services.message.message_controller import add_update_info
+from tgclient.services.barcode.detect_barcode import detect_barcode
 
-def send_typing_action(func):
-    """Sends typing action while processing func command."""
+def inlinequery(update: Update, _: CallbackContext) -> None:
+    query = update.inline_query.query
+    query = query.strip().lower()
+    logger.info('inine: %s', query)
+    picture = divide_icon
+    query_list = WarehouseItem.objects.filter(Q(product__name__icontains=query))
+    offset = int(query.offset) if query.offset else 0
+    results = []
+    if len(query_list) is 0:
+        try:
+            result = InlineQueryResultArticle(
+                    id=1000,
+                    title='Не найдено',
+                    input_message_content=InputTextMessageContent(
+                        message_text= f'Ничего не найдено по запросу -> "{query}" ',
+                    )
+                )
+            
+            update.inline_query.answer(query.id, [result], cache_time=20,)
+        except Exception as e:
+            print(e)
+        return
+    results_array = []
+    try:
+        m_next_offset = str(offset + 5) if len(query_list) == 5 else None
+        for i, (name) in enumerate(query_list):
+            try:
+                # При использовании подгрузки, ID должны быть уникальными в пределах всей большой пачки!
+                results_array.append(InlineQueryResultArticle(id=str(offset + i),
+                    title=f'{name.product}',
+                    description=f'количество {name.quantity} шт., место: {name.rack}, {name.receipt_date}',
+                    input_message_content=InputTextMessageContent(
+                        message_text= '{}'.format(name),
+                        ),
+                        thumb_url=picture, thumb_width=48, thumb_height=48)
+                    )
 
-    @wraps(func)
-    def command_func(update, context, *args, **kwargs):
-        context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.TYPING)
-        return func(update, context,  *args, **kwargs)
+            except Exception as e:
+                print(e)
+        # устанавливаем новый offset или сбрасываем, если в БД закончились релевантные записи
+        update.answer_inline_query.answer(query.id, results_array, next_offset=m_next_offset if m_next_offset else "")
+    except Exception as e:
+        print(e)
+def inlinequery(update: Update, _: CallbackContext) -> None:
+    """Handle the inline query."""
+    picture = divide_icon
+    query = update.inline_query.query
+    offset = int(query.offset) if query.offset else 0
+    logger.info('inine: %s', query)
+    results = []
+    query_list = WarehouseItem.objects.filter(Q(product__name__icontains=query.strip().lower()))
 
-    return command_func
-
-# Enable logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
-
-logger = logging.getLogger(__name__)
-
-# Define a few command handlers. These usually take the two arguments update and context
-#Your bot will repond when you type / and then respective commands e.g /start , /help
-@run_async     
-@send_typing_action
-def start(update,context):
-    """Send a message when the command /start is issued."""
-    global first
-    first=update.message.chat.first_name
-    update.message.reply_text('Hi! '+str(first)+' \n\nWelcome to Optical Character Recognizer Bot. \n\nJust send a clear image to me and i will recognize the text in the image and send it as a message!')
-
-@run_async
-@send_typing_action
-def convert_image(update,context):
-        file_id = update.message.photo[-1].file_id
-        newFile=context.bot.get_file(file_id)
-        file= newFile.file_path
-        context.user_data['filepath']=file
-        keyboard = [[InlineKeyboardButton("English ", callback_data='eng'), InlineKeyboardButton("Russian", callback_data='rus'),InlineKeyboardButton("Czech", callback_data='cze')],
-                    [InlineKeyboardButton("Chinese simplified", callback_data='chs'), InlineKeyboardButton("Chinese Traditional", callback_data='cht')],[InlineKeyboardButton("Japanese", callback_data='jpn')] ,
-                    [InlineKeyboardButton("Arabic", callback_data='ara'),InlineKeyboardButton("Afrikans", callback_data='AFR'), InlineKeyboardButton("German", callback_data='gre')],
-                    [InlineKeyboardButton("Italian", callback_data='ita'),InlineKeyboardButton("Indonesian", callback_data='eng'),InlineKeyboardButton("French", callback_data='fre')],
-                    [InlineKeyboardButton ("Spanish", callback_data='spa'),InlineKeyboardButton("Portuguese", callback_data='por'),InlineKeyboardButton("Korean", callback_data='kor')]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        update.message.reply_text('Select Language : ', reply_markup=reply_markup)
-
-@run_async
-def button(update,context):
-    filepath=context.user_data['filepath']
-    query = update.callback_query
-    query.answer()
-    query.edit_message_text("Extracting text please wait ...")
-    data=requests.get(f"https://api.ocr.space/parse/imageurl?apikey={api_key}&url={filepath}&language={query.data}&detectOrientation=True&filetype=JPG&OCREngine=1&isTable=True&scale=True")
-    data=data.json()
-    if data['IsErroredOnProcessing']==False:
-        message=data['ParsedResults'][0]['ParsedText']
-        query.edit_message_text(f"{message}")
-    else:
-        query.edit_message_text(text="⚠️Something went wrong, please try again ⚠️")
-
-persistence=PicklePersistence('userdata')
-def main(): 
-    bot_token=token
-    updater = Updater(bot_token,use_context=True,persistence=persistence)
-    dp=updater.dispatcher
-    dp.add_handler(CommandHandler('start',start))
-    dp.add_handler(MessageHandler(Filters.photo, convert_image))
-    dp.add_handler(CallbackQueryHandler(button))
-    updater.start_polling(clean=True)
-    updater.idle()
- 
-	
-if __name__=="__main__":
-	main()
+    if len(query_list) is 0:
+        try:
+            result = InlineQueryResultArticle(
+                    id=1000,
+                    title='Не найдено',
+                )
+            update.inline_query.answer(query.id, [result])
+        except Exception as e:
+            print(e)
+        return    
+    results = []
+    try:
+        m_next_offset = str(offset + 5) if len(query_list) == 5 else None
+        for i, (name) in enumerate(query_list):
+            results.append(
+                InlineQueryResultArticle(
+                    id=str(),
+                    title=f'{name.product}',
+                    description=f'количество {name.quantity} шт., место: {name.rack}, {name.receipt_date}',
+                    input_message_content=InputTextMessageContent(
+                        message_text= '{}'.format(name),
+                    ),
+                    thumb_url=picture, thumb_width=48, thumb_height=48
+                )
+            )
+        if query and not results:
+            results.append(
+                
+            )
+        
+        print(len(results))
+        update.inline_query.answer(
+            results=results,
+            cache_time=20,
+        )
+    except Exception as e:
+        print(e)
+    except AttributeError as ex:
+        return 
