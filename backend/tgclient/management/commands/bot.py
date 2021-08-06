@@ -73,30 +73,34 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
     """Handle the inline query."""
     picture = divide_icon
     query = update.inline_query.query
-    query = query.strip().lower()
+    offset = int(update.inline_query.offset) if update.inline_query.offset else 0
     logger.info('inine: %s', query)
     results = []
-    query_list = WarehouseItem.objects.filter(Q(product__name__icontains=query))
-    try:
-        for i, (name) in enumerate(query_list):
-            #if name.product.picture != None:
-            #    picture = read(f'{name.product.picture}')
-            #    print(picture)
-            #else:
-            #    picture = divide_icon
-                
+    query_list = WarehouseItem.objects.filter(Q(product__name__icontains=query.strip().lower()))
 
-            results.append(
-                InlineQueryResultArticle(
-                    id=i+1,
-                    title=f'{name.product}',
-                    description=f'количество {name.quantity} шт., место: {name.rack}, {name.receipt_date}',
-                    input_message_content=InputTextMessageContent(
-                        message_text= '{}'.format(name),
-                    ),
-                    thumb_url=picture, thumb_width=48, thumb_height=48
+   
+    results = []
+    try:
+        for index, (name) in enumerate(query_list):
+            try:
+                results.append(
+                    InlineQueryResultArticle(
+                        id=str(offset + index),
+                        title=f'{name.product}',
+                        description=f'количество {name.quantity} шт., место: {name.rack}, {name.receipt_date}',
+                        input_message_content=InputTextMessageContent(
+                            message_text= '{}'.format(name),
+                        ),
+                        thumb_url=picture, thumb_width=48, thumb_height=48
+                    )
                 )
-            )
+            
+            except Exception as e:
+                print(e)
+
+            except Exception as e:
+                print(e)
+    
         if query and not results:
             results.append(
                 InlineQueryResultArticle(
@@ -106,15 +110,12 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
                         message_text= f'Ничего не найдено по запросу -> "{query}" ',
                     )
                 )
-            )     
-        update.inline_query.answer(
-            results=results,
-            cache_time=20,
-        )
-
-    except AttributeError as ex:
-        return   
-
+            )
+        
+        update.inline_query.answer(results=results, cache_time=20, auto_pagination=True)    
+    
+    except Exception as e:
+        print(e)
 
 def show_warehouse(update: Update, context: CallbackContext) -> str:    
 
