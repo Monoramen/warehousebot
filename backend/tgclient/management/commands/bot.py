@@ -87,7 +87,7 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
                     InlineQueryResultArticle(
                         id=str(offset + index),
                         title=f'{name.product}',
-                        description=f'количество {name.quantity} шт., место: {name.rack}, {name.receipt_date}',
+                        description=f'{name.product.info} количество {name.quantity} шт., место: {name.rack}, {name.receipt_date}',
                         input_message_content=InputTextMessageContent(
                             message_text= '{}'.format(name),
                         ),
