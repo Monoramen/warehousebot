@@ -60,7 +60,6 @@ def help_command(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /help is issued."""
     update.message.reply_text(MESSAGE['help'], parse_mode='Markdown')
 
-divide_icon = 'http://s1.iconbird.com/ico/0512/48pxwebiconset/w48h481337350005System.png'
 def photo(update, context) -> None:
     file_id = update.message.photo[-1].file_id
     newFile=context.bot.get_file(file_id)
@@ -71,7 +70,7 @@ def photo(update, context) -> None:
 
 def inlinequery(update: Update, _: CallbackContext) -> None:
     """Handle the inline query."""
-    picture = divide_icon
+    picture = 'http://s1.iconbird.com/ico/0512/48pxwebiconset/w48h481337350005System.png'
     query = update.inline_query.query
     offset = int(update.inline_query.offset) if update.inline_query.offset else 0
     logger.info('inine: %s', query)
