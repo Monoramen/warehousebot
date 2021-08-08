@@ -117,9 +117,6 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
     except Exception as e:
         print(e)
 
-def show_warehouse(update: Update, context: CallbackContext) -> str:    
-
-    update.message.reply_text(text=show_all_item(), parse_mode='Markdown') 
 
 class Command(BaseCommand):
     help = 'TgWarehouseBot'
@@ -137,7 +134,6 @@ class Command(BaseCommand):
         dp.add_handler(CommandHandler('start', start))
         dp.add_handler(CommandHandler("help", help_command))
         dp.add_handler(InlineQueryHandler(inlinequery))
-        dp.add_handler(CommandHandler('showall', show_warehouse))
         dp.add_handler(MessageHandler(Filters.photo & ~Filters.command, photo))
         dp.add_error_handler(error)
         
