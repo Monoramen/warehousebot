@@ -1,15 +1,12 @@
 from os import name
-import re
 import logging
 from uuid import uuid4
 from logging import error
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from django.db.models import query, query_utils
 from telegram import Bot
 from telegram import Update
-from telegram import PhotoSize
-from telegram import (InlineKeyboardMarkup, InlineKeyboardButton, InlineQueryResultArticle, ParseMode, InputTextMessageContent)
+from telegram import (InlineQueryResultArticle, ParseMode, InputTextMessageContent)
 from telegram.ext import (CallbackContext, Filters, 
     MessageHandler, Updater,
     CommandHandler, CallbackContext,
@@ -24,6 +21,7 @@ from tgclient.models import WarehouseItem
 
 from django.db.models import Q
 from .messages import MESSAGE
+from . import keyboards as kb
 from django.conf import settings
 from tgclient.services.message.message_controller import add_update_info
 from tgclient.services.barcode.detect_barcode import detect_barcode
@@ -118,27 +116,18 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
         print(e)
 
 MENU = range(1)
-SHOW, EDIT, DONE, BACK = range(4)
+SHOW, EDIT, DONE, BACK, SEARCH = range(5)
 
 def menu(update: Update, context: CallbackContext) -> None:
     """Sends a message with three inline buttons attached."""
-    keyboard = [
-        [InlineKeyboardButton("Показать стеллажи", callback_data=str(SHOW))],
-        [InlineKeyboardButton("Готово", callback_data=str(DONE))],
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text('Please choose:', reply_markup=reply_markup)
+    update.message.reply_text('Выбери действие', reply_markup=kb.menu_kb)
     return MENU
 
 def menu_over(update, _):
     query = update.callback_query
     query.answer()
-    keyboard = [
-        [InlineKeyboardButton("Показать стеллажи", callback_data=str(SHOW))],
-        [InlineKeyboardButton("Готово", callback_data=str(DONE))],
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    query.edit_message_text(text=f"{query.data}", reply_markup=reply_markup)
+
+    query.edit_message_text(text=f"Выбери действие", reply_markup=kb.menu_kb)
     return MENU
 
 
@@ -146,12 +135,7 @@ def menu_over(update, _):
 def show_step(update, _):
     query = update.callback_query
     query.answer()
-    keyboard = [
-        [InlineKeyboardButton("C1", callback_data='c_1')],
-        [InlineKeyboardButton("Назад", callback_data=str(BACK))],
-        ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    query.edit_message_text(text=f"{query.data}", reply_markup=reply_markup)
+    query.edit_message_text(text=f"{query.data}", reply_markup=kb.rack_kb)
     return MENU
 
 def edit_step(update, _):
