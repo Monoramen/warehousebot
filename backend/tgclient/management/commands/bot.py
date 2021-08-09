@@ -5,7 +5,7 @@ from uuid import uuid4
 from logging import error
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from django.db.models import query_utils
+from django.db.models import query, query_utils
 from telegram import Bot
 from telegram import Update
 from telegram import PhotoSize
@@ -33,7 +33,7 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
-PRODUCT, QUANTITY, CONFIRMATION = range(3)
+
 CHAT_TIMEOUT=60
 
 def log_errors(f):
@@ -69,6 +69,7 @@ def photo(update, context) -> None:
 
 
 def inlinequery(update: Update, _: CallbackContext) -> None:
+
     """Handle the inline query."""
     picture = 'http://s1.iconbird.com/ico/0512/48pxwebiconset/w48h481337350005System.png'
     query = update.inline_query.query
@@ -86,9 +87,9 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
                     InlineQueryResultArticle(
                         id=str(offset + index),
                         title=f'{name.product}',
-                        description=f'{name.product.info} количество {name.quantity} шт., место: {name.rack}, {name.receipt_date}',
+                        description=f'количество {name.quantity} шт., место: {name.rack}, {name.receipt_date} {name.product.info} ',
                         input_message_content=InputTextMessageContent(
-                            message_text= '{}'.format(name),
+                            message_text= f'{name}  {name.product.info}',
                         ),
                         thumb_url=picture, thumb_width=48, thumb_height=48
                     )
@@ -116,6 +117,66 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
     except Exception as e:
         print(e)
 
+MENU = range(1)
+SHOW, EDIT, DONE, BACK = range(4)
+
+def menu(update: Update, context: CallbackContext) -> None:
+    """Sends a message with three inline buttons attached."""
+    keyboard = [
+        [InlineKeyboardButton("Показать стеллажи", callback_data=str(SHOW))],
+        [InlineKeyboardButton("Готово", callback_data=str(DONE))],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text('Please choose:', reply_markup=reply_markup)
+    return MENU
+
+def menu_over(update, _):
+    query = update.callback_query
+    query.answer()
+    keyboard = [
+        [InlineKeyboardButton("Показать стеллажи", callback_data=str(SHOW))],
+        [InlineKeyboardButton("Готово", callback_data=str(DONE))],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text(text=f"{query.data}", reply_markup=reply_markup)
+    return MENU
+
+
+
+def show_step(update, _):
+    query = update.callback_query
+    query.answer()
+    keyboard = [
+        [InlineKeyboardButton("C1", callback_data='c_1')],
+        [InlineKeyboardButton("Назад", callback_data=str(BACK))],
+        ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text(text=f"{query.data}", reply_markup=reply_markup)
+    return MENU
+
+def edit_step(update, _):
+    """Показ нового выбора кнопок"""
+    query = update.callback_query
+    query.answer()
+    query.edit_message_text(text=f"data {query.data}") 
+
+def button(update: Update, context: CallbackContext) -> None:
+    """Parses the CallbackQuery and updates the message text."""
+    query = update.callback_query
+
+    # CallbackQueries need to be answered, even if no notification to the user is needed
+    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+    query.answer()
+    print(query.data)
+    query.edit_message_text(text=f"Selected option: {query.data}") 
+
+def done(update, _):
+    """Возвращает `ConversationHandler.END`, который говорит 
+    `ConversationHandler` что разговор окончен"""
+    query = update.callback_query
+    query.answer()
+    query.edit_message_text(text="See you next time!")
+    return ConversationHandler.END
 
 class Command(BaseCommand):
     help = 'TgWarehouseBot'
@@ -132,6 +193,25 @@ class Command(BaseCommand):
         dp = updater.dispatcher
         dp.add_handler(CommandHandler('start', start))
         dp.add_handler(CommandHandler("help", help_command))
+
+
+        menu_handler = ConversationHandler(
+            entry_points=[CommandHandler("menu", menu)],
+            states={ # словарь состояний разговора, возвращаемых callback  функциями
+                MENU: [
+                    CallbackQueryHandler(menu_over, pattern='^' + str(BACK) + '$'),
+                    CallbackQueryHandler(show_step, pattern='^' + str(SHOW) + '$'),
+                    CallbackQueryHandler(edit_step, pattern='^' + str(EDIT) + '$'),
+                    CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'),
+                    
+                ],
+                },
+            fallbacks=[CommandHandler("menu", menu)],
+        )
+            
+        dp.add_handler(menu_handler)
+        #dp.add_handler(CommandHandler("menu", menu))
+        #dp.add_handler(CallbackQueryHandler(button))
         dp.add_handler(InlineQueryHandler(inlinequery))
         dp.add_handler(MessageHandler(Filters.photo & ~Filters.command, photo))
         dp.add_error_handler(error)
