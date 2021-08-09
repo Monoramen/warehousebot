@@ -27,7 +27,7 @@ SHOW, EDIT, DONE, BACK, SEARCH = range(5)
 footer_kb =  [InlineKeyboardButton("Завершить", callback_data=str(DONE)), InlineKeyboardButton("Назад", callback_data=str(BACK))]
 
 menu_kb =  InlineKeyboardMarkup([
-        [InlineKeyboardButton("Показать стеллажи", callback_data=str(SHOW)), InlineKeyboardButton("Найти/Изменить", callback_data=str(SEARCH))], 
+        [InlineKeyboardButton("Cтеллажи", callback_data=str(SHOW)), InlineKeyboardButton("Найти", callback_data=str(SEARCH))], 
         [InlineKeyboardButton("Завершить", callback_data=str(DONE))],
     ])
 
