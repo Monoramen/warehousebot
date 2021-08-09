@@ -147,7 +147,7 @@ def button(update: Update, context: CallbackContext) -> None:
     # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
     query.answer()
     print(query.data)
-    query.edit_message_text(text=f"Selected option: {query.data}") 
+    query.edit_message_text(text=f"Выбран: {query.data}") 
     return MENU
 
 
