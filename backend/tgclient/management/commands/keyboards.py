@@ -20,7 +20,7 @@ for index in RACK_CHOICES:
 for i in racks:
     rack_keys.append('Cтеллаж №' + i)    
 
-    
+
 
 MENU  = range(1)
 SHOW, EDIT, DONE, BACK, SEARCH = range(5)
@@ -35,7 +35,7 @@ menu_kb =  InlineKeyboardMarkup([
 btn_list = []
 for i in range(0,len(rack_keys),3):
     print(str(i))
-    keyboard = [InlineKeyboardButton(text = rack_keys[i], callback_data=str(i)), 
+    keyboard = [InlineKeyboardButton(text = rack_keys[i], callback_data='C'+str(i)), 
         InlineKeyboardButton(text = rack_keys[i+1], callback_data=rack_keys[i+1]), 
          InlineKeyboardButton(text = rack_keys[i+2], callback_data=rack_keys[i+2]),
         ]

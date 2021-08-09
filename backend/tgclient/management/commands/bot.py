@@ -137,11 +137,7 @@ def show_step(update, _):
     query.edit_message_text(text=f"{query.data}", reply_markup=kb.rack_kb)
     return MENU
 
-def edit_step(update, _):
-    """Показ нового выбора кнопок"""
-    query = update.callback_query
-    query.answer()
-    query.edit_message_text(text=f"data {query.data}") 
+
 
 def button(update: Update, context: CallbackContext) -> None:
     """Parses the CallbackQuery and updates the message text."""
@@ -152,7 +148,14 @@ def button(update: Update, context: CallbackContext) -> None:
     query.answer()
     print(query.data)
     query.edit_message_text(text=f"Selected option: {query.data}") 
+    return MENU
 
+
+def edit_step(update, _):
+    """Показ нового выбора кнопок"""
+    query = update.callback_query
+    query.answer()
+    query.edit_message_text(text=f"data {query.data}") 
 def done(update, _):
     """Возвращает `ConversationHandler.END`, который говорит 
     `ConversationHandler` что разговор окончен"""
@@ -184,6 +187,7 @@ class Command(BaseCommand):
                 MENU: [
                     CallbackQueryHandler(menu_over, pattern='^' + str(BACK) + '$'),
                     CallbackQueryHandler(show_step, pattern='^' + str(SHOW) + '$'),
+                    CallbackQueryHandler(button),
                     CallbackQueryHandler(edit_step, pattern='^' + str(EDIT) + '$'),
                     CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'),
                     
