@@ -1,12 +1,15 @@
 from os import name
+import re
 import logging
 from uuid import uuid4
 from logging import error
 from django.core.management.base import BaseCommand
 from django.conf import settings
+from django.db.models import query_utils
 from telegram import Bot
 from telegram import Update
-from telegram import (InlineQueryResultArticle, ParseMode, InputTextMessageContent)
+from telegram import PhotoSize
+from telegram import (InlineKeyboardMarkup, InlineKeyboardButton, InlineQueryResultArticle, ParseMode, InputTextMessageContent)
 from telegram.ext import (CallbackContext, Filters, 
     MessageHandler, Updater,
     CommandHandler, CallbackContext,
@@ -21,18 +24,25 @@ from tgclient.models import WarehouseItem
 
 from django.db.models import Q
 from .messages import MESSAGE
-from . import keyboards as kb
 from django.conf import settings
 from tgclient.services.message.message_controller import add_update_info
 from tgclient.services.barcode.detect_barcode import detect_barcode
+from typing import Dict
 
+from telegram import ReplyKeyboardMarkup, Update, ReplyKeyboardRemove
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
 )
 
 logger = logging.getLogger(__name__)
-
+PRODUCT, QUANTITY, PLACE, DATE, CONFIRMATION = range(5)
 CHAT_TIMEOUT=60
+edit_keyboard = [
+    ['изменить', 'готово'],
+]
+markup = ReplyKeyboardMarkup(edit_keyboard, one_time_keyboard=True)
+
+
 
 def log_errors(f):
 
@@ -67,7 +77,6 @@ def photo(update, context) -> None:
 
 
 def inlinequery(update: Update, _: CallbackContext) -> None:
-
     """Handle the inline query."""
     picture = 'http://s1.iconbird.com/ico/0512/48pxwebiconset/w48h481337350005System.png'
     query = update.inline_query.query
@@ -85,9 +94,9 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
                     InlineQueryResultArticle(
                         id=str(offset + index),
                         title=f'{name.product}',
-                        description=f'количество {name.quantity} шт., место: {name.rack}, {name.receipt_date} {name.product.info} ',
+                        description=f'кол-во {name.quantity} шт., место: {name.rack}, {name.receipt_date}, {name.product.info}',
                         input_message_content=InputTextMessageContent(
-                            message_text= f'{name}  {name.product.info}',
+                            message_text= f'{name} \n{name.product.info}',
                         ),
                         thumb_url=picture, thumb_width=48, thumb_height=48
                     )
@@ -109,57 +118,12 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
                 )
             )
         
-        update.inline_query.answer(results=results, cache_time=20, auto_pagination=True)    
+        update.inline_query.answer(results=results, cache_time=20, auto_pagination=True, reply_markup=markup,)    
     
     except Exception as e:
         print(e)
-
-MENU = range(1)
-SHOW, EDIT, DONE, BACK, SEARCH = range(5)
-
-def menu(update: Update, context: CallbackContext) -> None:
-    """Sends a message with three inline buttons attached."""
-    update.message.reply_text('Выбери действие', reply_markup=kb.menu_kb)
-    return MENU
-
-def menu_over(update, _):
-    query = update.callback_query
-    query.answer()
-
-    query.edit_message_text(text=f"Выбери действие", reply_markup=kb.menu_kb)
-    return MENU
-
-
-
-def show_step(update, _):
-    query = update.callback_query
-    query.answer()
-    query.edit_message_text(text=f"{query.data}", reply_markup=kb.rack_kb)
-    return MENU
-
-def edit_step(update, _):
-    """Показ нового выбора кнопок"""
-    query = update.callback_query
-    query.answer()
-    query.edit_message_text(text=f"data {query.data}") 
-
-def button(update: Update, context: CallbackContext) -> None:
-    """Parses the CallbackQuery and updates the message text."""
-    query = update.callback_query
-
-    # CallbackQueries need to be answered, even if no notification to the user is needed
-    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
-    query.answer()
-    print(query.data)
-    query.edit_message_text(text=f"Selected option: {query.data}") 
-
-def done(update, _):
-    """Возвращает `ConversationHandler.END`, который говорит 
-    `ConversationHandler` что разговор окончен"""
-    query = update.callback_query
-    query.answer()
-    query.edit_message_text(text="See you next time!")
-    return ConversationHandler.END
+    
+    return EDITING
 
 class Command(BaseCommand):
     help = 'TgWarehouseBot'
@@ -176,25 +140,6 @@ class Command(BaseCommand):
         dp = updater.dispatcher
         dp.add_handler(CommandHandler('start', start))
         dp.add_handler(CommandHandler("help", help_command))
-
-
-        menu_handler = ConversationHandler(
-            entry_points=[CommandHandler("menu", menu)],
-            states={ # словарь состояний разговора, возвращаемых callback  функциями
-                MENU: [
-                    CallbackQueryHandler(menu_over, pattern='^' + str(BACK) + '$'),
-                    CallbackQueryHandler(show_step, pattern='^' + str(SHOW) + '$'),
-                    CallbackQueryHandler(edit_step, pattern='^' + str(EDIT) + '$'),
-                    CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'),
-                    
-                ],
-                },
-            fallbacks=[CommandHandler("menu", menu)],
-        )
-            
-        dp.add_handler(menu_handler)
-        #dp.add_handler(CommandHandler("menu", menu))
-        #dp.add_handler(CallbackQueryHandler(button))
         dp.add_handler(InlineQueryHandler(inlinequery))
         dp.add_handler(MessageHandler(Filters.photo & ~Filters.command, photo))
         dp.add_error_handler(error)
