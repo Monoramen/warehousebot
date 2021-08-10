@@ -3,7 +3,7 @@ from telegram import (InlineKeyboardMarkup, InlineKeyboardButton)
 from tgclient.models import WarehouseItem
 from django.db.models import Q
 import re
-#rack_list = WarehouseItem.objects.filter(Q(rack='C1'))
+
 from tgclient.rack_choices import RACK_CHOICES
 
 #print(len(RACK_CHOICES))
@@ -12,18 +12,17 @@ racks = []
 rack_keys = []
 for index in RACK_CHOICES:
     stellazh = index[1][1]
-
     if index[1][1] in racks:
         pass
     else:
         racks.append(stellazh)
 for i in racks:
-    rack_keys.append('C' + i)    
+    rack_keys.append('С' + i)    
 
 
 
-MENU  = range(1)
-SHOW, EDIT, DONE, BACK, SEARCH = range(5)
+MENU, RACK = range(2)
+SHOW, EDIT, DONE, BACK, SEARCH, ITEMS = range(6)
 footer_kb =  [InlineKeyboardButton("Завершить", callback_data=str(DONE)), InlineKeyboardButton("Назад", callback_data=str(BACK))]
 
 menu_kb =  InlineKeyboardMarkup([
@@ -43,5 +42,13 @@ btn_list.append(footer_kb)
 rack_kb = InlineKeyboardMarkup(btn_list)   
 
 
-     
 
+def items_list(rack):
+    print(type(rack))
+    print(rack)
+    items_list = WarehouseItem.objects.filter(rack__contains=rack)
+    btn_list  = []
+    for item in items_list:
+        keyboard = [InlineKeyboardButton(text = item.product.name, callback_data= item.product.name)]
+        btn_list.append(keyboard)
+    return InlineKeyboardMarkup(btn_list)   

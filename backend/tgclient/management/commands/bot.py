@@ -1,10 +1,10 @@
-from os import name
+from os import kill, name, replace
 import logging
 from uuid import uuid4
 from logging import error
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from telegram import Bot
+from telegram import Bot, replymarkup
 from telegram import Update
 from telegram import (InlineQueryResultArticle, ParseMode, InputTextMessageContent)
 from telegram.ext import (CallbackContext, Filters, 
@@ -114,8 +114,8 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
     except Exception as e:
         print(e)
 
-MENU = range(1)
-SHOW, EDIT, DONE, BACK, SEARCH = range(5)
+MENU, RACK = range(2)
+SHOW, EDIT, DONE, BACK, SEARCH, ITEMS = range(6)
 
 def menu(update: Update, context: CallbackContext) -> None:
     """Sends a message with three inline buttons attached."""
@@ -129,16 +129,6 @@ def menu_over(update, _):
     query.edit_message_text(text=f"Выбери действие", reply_markup=kb.menu_kb)
     return MENU
 
-
-
-def show_step(update, _):
-    query = update.callback_query
-    query.answer()
-    query.edit_message_text(text=f"{query.data}", reply_markup=kb.rack_kb)
-    return MENU
-
-
-
 def button(update: Update, context: CallbackContext) -> None:
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
@@ -147,22 +137,41 @@ def button(update: Update, context: CallbackContext) -> None:
     # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
     query.answer()
     print(query.data)
-    query.edit_message_text(text=f"Выбран: {query.data}") 
-    return MENU
 
+
+
+
+def show_step(update, _):
+    query = update.callback_query
+    query.answer()
+    query.edit_message_text(text=f"_", reply_markup=kb.rack_kb)
+    return RACK
+
+ 
+def place(update, _):
+    """Parses the CallbackQuery and updates the message text."""
+    query = update.callback_query
+    query.answer()
+    print(query.data)
+    query.edit_message_text(text=f"Выбран: {query.data} стеллаж",reply_markup=kb.items_list(query.data) ) 
+    return RACK
 
 def edit_step(update, _):
     """Показ нового выбора кнопок"""
     query = update.callback_query
     query.answer()
     query.edit_message_text(text=f"data {query.data}") 
+
 def done(update, _):
     """Возвращает `ConversationHandler.END`, который говорит 
     `ConversationHandler` что разговор окончен"""
     query = update.callback_query
     query.answer()
-    query.edit_message_text(text="See you next time!")
+    query.edit_message_text(text='Увидимся еще')
     return ConversationHandler.END
+
+
+
 
 class Command(BaseCommand):
     help = 'TgWarehouseBot'
@@ -187,10 +196,12 @@ class Command(BaseCommand):
                 MENU: [
                     CallbackQueryHandler(menu_over, pattern='^' + str(BACK) + '$'),
                     CallbackQueryHandler(show_step, pattern='^' + str(SHOW) + '$'),
-                    CallbackQueryHandler(button),
-                    CallbackQueryHandler(edit_step, pattern='^' + str(EDIT) + '$'),
                     CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'),
                     
+                ],
+                RACK: [
+                    CallbackQueryHandler(place),               
+
                 ],
                 },
             fallbacks=[CommandHandler("menu", menu)],
