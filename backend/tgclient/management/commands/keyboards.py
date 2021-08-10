@@ -23,7 +23,7 @@ for i in racks:
 
 MENU, RACK = range(2)
 SHOW, EDIT, DONE, BACK, SEARCH, ITEMS = range(6)
-footer_kb =  [InlineKeyboardButton("Завершить", callback_data=str(DONE)), InlineKeyboardButton("Назад", callback_data=str(BACK))]
+footer_kb =  [ InlineKeyboardButton("Назад", callback_data=str(BACK))]
 
 menu_kb =  InlineKeyboardMarkup([
         [InlineKeyboardButton("Cтеллажи", callback_data=str(SHOW)), InlineKeyboardButton("Найти", callback_data=str(SEARCH))], 
@@ -38,7 +38,7 @@ for i in range(0,len(rack_keys),3):
          InlineKeyboardButton(text = rack_keys[i+2], callback_data=rack_keys[i+2]),
         ]
     btn_list.append(keyboard)
-
+btn_list.append(footer_kb)
 rack_kb = InlineKeyboardMarkup(btn_list)   
 
 
@@ -51,16 +51,19 @@ def items_list(rack):
     for item in items_list:
         keyboard = [InlineKeyboardButton(text = item.product.name, callback_data= item.product.name)]
         btn_list.append(keyboard)
+    btn_list.append(footer_kb)
     return InlineKeyboardMarkup(btn_list)   
 
 
 def item_edit_info(name):
     items = WarehouseItem.objects.filter(product__name__icontains=name)
     print(items)
-    result = ''
+    btn_list  = []
     for index, (name) in enumerate(items):
-        result += f'количество {name.quantity} шт., место: {name.rack}, {name.product.info} '
+        #result += f'количество {name.quantity} шт., место: {name.rack}, {name.product.info} '
+        keyboard = [InlineKeyboardButton(text = f'кол-во {name.quantity}', callback_data = name.quantity), InlineKeyboardButton(text = f'место {name.rack}', callback_data = name.rack)]
+    btn_list.append(keyboard)
+    btn_list.append(footer_kb)
 
-
-    return result
+    return InlineKeyboardMarkup(btn_list) 
 

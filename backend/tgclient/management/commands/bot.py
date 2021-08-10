@@ -141,7 +141,7 @@ def button(update: Update, context: CallbackContext) -> None:
 
 
 
-def show_step(update, _):
+def rack_menu(update, _):
     query = update.callback_query
     query.answer()
     query.edit_message_text(text=f"_", reply_markup=kb.rack_kb)
@@ -159,12 +159,9 @@ def place(update, _):
 def edit_step(update: Update, context: CallbackContext) -> None:
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
-
-    # CallbackQueries need to be answered, even if no notification to the user is needed
-    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
     query.answer()
     print(query.data)
-    query.edit_message_text(text=f"Выбран: {query.data} {kb.item_edit_info(query.data)}")
+    query.edit_message_text(text=f"Выбран: {query.data}", reply_markup=kb.item_edit_info(query.data))
 
 def done(update, _):
     """Возвращает `ConversationHandler.END`, который говорит 
@@ -204,17 +201,22 @@ class Command(BaseCommand):
             states={ # словарь состояний разговора, возвращаемых callback  функциями
                 MENU: [
                     CallbackQueryHandler(menu_over, pattern='^' + str(BACK) + '$'),
-                    CallbackQueryHandler(show_step, pattern='^' + str(SHOW) + '$'),
+                    CallbackQueryHandler(rack_menu, pattern='^' + str(SHOW) + '$'),
                     CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'),
                     
                 ],
                 RACK: [
-                    CallbackQueryHandler(place, pattern='..'),    
+                    CallbackQueryHandler(menu_over, pattern='^' + str(BACK) + '$'),
+                    CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'), 
+                    CallbackQueryHandler(place, pattern='..'),   
+                    
                             
 
                 ],
                 ITEM: [
+                    CallbackQueryHandler(rack_menu, pattern='^' + str(BACK) + '$'),
                     CallbackQueryHandler(edit_step), 
+                    CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'),
                 ],
                 },
             fallbacks=[CommandHandler("cancel", cancel)],
