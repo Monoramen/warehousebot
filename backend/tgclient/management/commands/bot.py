@@ -114,7 +114,7 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
     except Exception as e:
         print(e)
 
-MENU, RACK = range(2)
+MENU, RACK, ITEM = range(3)
 SHOW, EDIT, DONE, BACK, SEARCH, ITEMS = range(6)
 
 def menu(update: Update, context: CallbackContext) -> None:
@@ -154,13 +154,17 @@ def place(update, _):
     query.answer()
     print(query.data)
     query.edit_message_text(text=f"Выбран: {query.data} стеллаж",reply_markup=kb.items_list(query.data) ) 
-    return RACK
+    return ITEM
 
-def edit_step(update, _):
-    """Показ нового выбора кнопок"""
+def edit_step(update: Update, context: CallbackContext) -> None:
+    """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
+
+    # CallbackQueries need to be answered, even if no notification to the user is needed
+    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
     query.answer()
-    query.edit_message_text(text=f"data {query.data}") 
+    print(query.data)
+    query.edit_message_text(text=f"Выбран: {query.data} ")
 
 def done(update, _):
     """Возвращает `ConversationHandler.END`, который говорит 
@@ -200,8 +204,12 @@ class Command(BaseCommand):
                     
                 ],
                 RACK: [
-                    CallbackQueryHandler(place),               
+                    CallbackQueryHandler(place, pattern='..'),    
+                            
 
+                ],
+                ITEM: [
+                    CallbackQueryHandler(edit_step), 
                 ],
                 },
             fallbacks=[CommandHandler("menu", menu)],
