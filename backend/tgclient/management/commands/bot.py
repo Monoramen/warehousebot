@@ -164,7 +164,7 @@ def edit_step(update: Update, context: CallbackContext) -> None:
     # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
     query.answer()
     print(query.data)
-    query.edit_message_text(text=f"Выбран: {query.data} ")
+    query.edit_message_text(text=f"Выбран: {query.data} {kb.item_edit_info(query.data)}")
 
 def done(update, _):
     """Возвращает `ConversationHandler.END`, который говорит 
@@ -174,7 +174,12 @@ def done(update, _):
     query.edit_message_text(text='Увидимся еще')
     return ConversationHandler.END
 
-
+def cancel(update: Update, context: CallbackContext) -> int:
+    """Cancels and ends the conversation."""
+    user = update.message.from_user
+    logger.info("User %s canceled the conversation.", user.first_name)
+    update.message.reply_text('Увидимся', reply_markup=kb.ReplyKeyboardRemove())
+    return ConversationHandler.END
 
 
 class Command(BaseCommand):
@@ -212,7 +217,7 @@ class Command(BaseCommand):
                     CallbackQueryHandler(edit_step), 
                 ],
                 },
-            fallbacks=[CommandHandler("menu", menu)],
+            fallbacks=[CommandHandler("cancel", cancel)],
         )
             
         dp.add_handler(menu_handler)

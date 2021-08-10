@@ -1,5 +1,5 @@
 import builtins
-from telegram import (InlineKeyboardMarkup, InlineKeyboardButton)
+from telegram import (InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove)
 from tgclient.models import WarehouseItem
 from django.db.models import Q
 import re
@@ -38,7 +38,7 @@ for i in range(0,len(rack_keys),3):
          InlineKeyboardButton(text = rack_keys[i+2], callback_data=rack_keys[i+2]),
         ]
     btn_list.append(keyboard)
-btn_list.append(footer_kb)
+
 rack_kb = InlineKeyboardMarkup(btn_list)   
 
 
@@ -52,3 +52,15 @@ def items_list(rack):
         keyboard = [InlineKeyboardButton(text = item.product.name, callback_data= item.product.name)]
         btn_list.append(keyboard)
     return InlineKeyboardMarkup(btn_list)   
+
+
+def item_edit_info(name):
+    items = WarehouseItem.objects.filter(product__name__icontains=name)
+    print(items)
+    result = ''
+    for index, (name) in enumerate(items):
+        result += f'количество {name.quantity} шт., место: {name.rack}, {name.product.info} '
+
+
+    return result
+
