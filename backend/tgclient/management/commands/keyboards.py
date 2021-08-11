@@ -6,8 +6,7 @@ import re
 
 from tgclient.rack_choices import RACK_CHOICES
 
-#print(len(RACK_CHOICES))
-#print(RACK_CHOICES)
+
 racks = []
 rack_keys = []
 for index in RACK_CHOICES:
@@ -61,9 +60,45 @@ def item_edit_info(name):
     btn_list  = []
     for index, (name) in enumerate(items):
         #result += f'количество {name.quantity} шт., место: {name.rack}, {name.product.info} '
-        keyboard = [InlineKeyboardButton(text = f'кол-во {name.quantity}', callback_data = name.quantity), InlineKeyboardButton(text = f'место {name.rack}', callback_data = name.rack)]
+        keyboard = [InlineKeyboardButton(text = f'кол-во {name.quantity}', callback_data = 'EDIT_Q'), InlineKeyboardButton(text = f'место {name.rack}', callback_data = name.rack)]
     btn_list.append(keyboard)
     btn_list.append(footer_kb)
 
     return InlineKeyboardMarkup(btn_list) 
 
+
+class ButtonsInline:
+    
+    
+    def __init__(self, data_list: list, width: int):
+        self.data_list = data_list
+        self.width = width
+        self.button_list  = []
+        self.keys_list = []
+        self.row = []
+        self.counter = 0
+
+    def create_buttons(self):
+        for item in self.data_list:
+            key = InlineKeyboardButton(text = item, callback_data = item)
+            self.keys_list.append(key)
+
+        for item in self.keys_list:
+            self.row.append(item)
+            self.counter += 1
+            print(self.counter)
+            if self.counter == self.width:
+                print(self.row)
+                self.button_list.append(self.row)
+                self.row = []
+                self.counter = 0
+            if self.counter == 1 and item == self.keys_list[-1]:
+                self.button_list.append(self.row)
+
+            
+        return self.button_list
+
+
+    def new(cls):
+        params = cls.create_buttons()
+        return InlineKeyboardMarkup(params)

@@ -119,6 +119,7 @@ SHOW, EDIT, DONE, BACK, SEARCH, ITEMS = range(6)
 
 def menu(update: Update, context: CallbackContext) -> None:
     """Sends a message with three inline buttons attached."""
+    
     update.message.reply_text('Выбери действие', reply_markup=kb.menu_kb)
     return MENU
 
@@ -144,7 +145,10 @@ def button(update: Update, context: CallbackContext) -> None:
 def rack_menu(update, _):
     query = update.callback_query
     query.answer()
-    query.edit_message_text(text=f"_", reply_markup=kb.rack_kb)
+    data = ['С'+str(i) for i in range(1,10, 1)]
+    print(data)
+    keyboard = kb.ButtonsInline(data, 2).new()
+    query.edit_message_text(text=f"_", reply_markup=keyboard)
     return RACK
 
  
