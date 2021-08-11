@@ -1,3 +1,4 @@
+from re import S
 from typing import List, NamedTuple, Optional
 from tgclient.models import WarehouseItem
 
@@ -11,13 +12,20 @@ class ItemInfo(NamedTuple):
 
 
 class ItemFilter:
+    def __init__(self) -> None:
+        self.product_name = []
+
     def search_name(self, name):
         self.items = WarehouseItem.objects.filter(product__name__icontains=name)
-        return self.items
-    
+        print(self.items)
+        
+
     def search_rack(self, rack):
         self.items = WarehouseItem.objects.filter(rack__contains=rack)
-        return self.items
+        for item in self.items:
+            self.product_name.append(item.product.name)
+        
+        return self.product_name
 
 
 #def _get_info(text_message:str) -> ItemInfo:

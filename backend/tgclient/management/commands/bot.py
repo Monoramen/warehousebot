@@ -4,7 +4,7 @@ from uuid import uuid4
 from logging import error
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from telegram import Bot, replymarkup
+from telegram import Bot
 from telegram import Update
 from telegram import (InlineQueryResultArticle, ParseMode, InputTextMessageContent)
 from telegram.ext import (CallbackContext, Filters, 
@@ -20,11 +20,12 @@ from telegram.utils.helpers import escape_markdown
 from tgclient.models import WarehouseItem
 
 from django.db.models import Q
-from .messages import MESSAGE
-from . import keyboards as kb
-from django.conf import settings
+
+
+from tgclient.services.keyboarde import keyboards as kb
 from tgclient.services.message.message_controller import add_update_info
 from tgclient.services.barcode.detect_barcode import detect_barcode
+from .messages import MESSAGE
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
@@ -140,14 +141,11 @@ def button(update: Update, context: CallbackContext) -> None:
     print(query.data)
 
 
-
-
 def rack_menu(update, _):
     query = update.callback_query
     query.answer()
     data = ['С'+str(i) for i in range(1,10, 1)]
-    print(data)
-    keyboard = kb.ButtonsInline(data, 2).new()
+    keyboard = kb.ButtonsInline(data, 3).new()
     query.edit_message_text(text=f"_", reply_markup=keyboard)
     return RACK
 
@@ -156,16 +154,21 @@ def place(update, _):
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
     query.answer()
-    print(query.data)
-    query.edit_message_text(text=f"Выбран: {query.data} стеллаж",reply_markup=kb.items_list(query.data) ) 
+    data = kb.keyboard_db.ItemFilter().search_rack(query.data)
+    print(data)
+    keyboard = kb.ButtonsInline(data, 1).new()
+    query.edit_message_text(text=f"Выбран: {query.data} стеллаж",  reply_markup=keyboard) 
     return ITEM
 
 def edit_step(update: Update, context: CallbackContext) -> None:
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
     query.answer()
-    print(query.data)
-    query.edit_message_text(text=f"Выбран: {query.data}", reply_markup=kb.item_edit_info(query.data))
+    data = kb.keyboard_db.ItemFilter().search_name(query.data)
+    print(data)
+    query.edit_message_text(text=f"Выбран: {query.data}")
+    return ITEM
+
 
 def done(update, _):
     """Возвращает `ConversationHandler.END`, который говорит 
