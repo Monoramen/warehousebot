@@ -16,7 +16,7 @@ for index in RACK_CHOICES:
     else:
         racks.append(stellazh)
 for i in racks:
-    rack_keys.append('С' + i)    
+    rack_keys.append('С' + i)
 
 
 
@@ -25,7 +25,7 @@ SHOW, EDIT, DONE, BACK, SEARCH, ITEMS = range(6)
 footer_kb =  [ InlineKeyboardButton("Назад", callback_data=str(BACK))]
 
 menu_kb =  InlineKeyboardMarkup([
-        [InlineKeyboardButton("Cтеллажи", callback_data=str(SHOW)), InlineKeyboardButton("Найти", callback_data=str(SEARCH))], 
+        [InlineKeyboardButton("Cтеллажи", callback_data=str(SHOW)), InlineKeyboardButton("Найти", callback_data=str(SEARCH))],
         [InlineKeyboardButton("Завершить", callback_data=str(DONE))],
     ])
 
@@ -40,7 +40,7 @@ def item_edit_info(name):
     btn_list.append(keyboard)
     btn_list.append(footer_kb)
 
-    return InlineKeyboardMarkup(btn_list) 
+    return InlineKeyboardMarkup(btn_list)
 
 
 class ButtonsInline:
@@ -54,7 +54,7 @@ class ButtonsInline:
 
     def create_buttons(self):
         for item in self.data_list:
-            key = InlineKeyboardButton(text = item, callback_data = item)
+            key = InlineKeyboardButton(text = item[:50], callback_data = item[:50])
             self.keys_list.append(key)
 
         for item in self.keys_list:
@@ -68,11 +68,31 @@ class ButtonsInline:
                 self.button_list.append(self.row)
             else:
                 pass
-        self.button_list.append(footer_kb)   
+        self.button_list.append(footer_kb)
         return self.button_list
 
 
     def new(cls):
         params = cls.create_buttons()
-        
         return InlineKeyboardMarkup(params)
+
+    def buttons(cls):
+        params = cls.create_buttons()
+        return params
+
+
+class PaginationInlineButtons:
+    def __init__(self, button_list):
+        n = 5
+        self.button_list = button_list
+        self.page_list = [self.button_list[i:i+n] for i in range(0, len(self.button_list), n)]
+
+    def pagination(self):
+        print(len(self.page_list))
+        if len(self.page_list) == 1:
+            page = InlineKeyboardMarkup(self.page_list[0])
+        else:
+            for i in len(self.page_list):
+                page = InlineKeyboardMarkup(self.page_list[i])
+            pass
+        return page

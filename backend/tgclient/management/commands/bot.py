@@ -17,11 +17,11 @@ from telegram.ext import (CallbackContext, Filters,
 from telegram.update import Update
 from telegram.utils.request import Request
 from telegram.utils.helpers import escape_markdown
-from tgclient.models import WarehouseItem
+import telegram_bot_pagination as pg
 
 from django.db.models import Q
 
-
+from tgclient.models import WarehouseItem
 from tgclient.services.keyboarde import keyboards as kb
 from tgclient.services.message.message_controller import add_update_info
 from tgclient.services.barcode.detect_barcode import detect_barcode
@@ -45,14 +45,12 @@ def log_errors(f):
             print(error_message)
         return inner
 
-
 def start(update: Update, _: CallbackContext) -> None:
     """Send a message when the command /start is issued."""
     logger.info('Command: %s', '/start was press')
     add_update_info(update.message)
     
     update.message.reply_text(MESSAGE['start'], parse_mode='Markdown')
-
 
 def help_command(update: Update, context: CallbackContext) -> None:
     logger.info('Command: %s', '/help')
@@ -65,7 +63,6 @@ def photo(update, context) -> None:
     url= newFile.file_path
     reply = detect_barcode(url)
     update.message.reply_text(' Штрихкод {}'.format(reply),  parse_mode='Markdown')
-
 
 def inlinequery(update: Update, _: CallbackContext) -> None:
 
@@ -155,9 +152,9 @@ def place(update, _):
     query = update.callback_query
     query.answer()
     data = kb.keyboard_db.ItemFilter().search_rack(query.data)
-    print(data)
-    keyboard = kb.ButtonsInline(data, 1).new()
-    query.edit_message_text(text=f"Выбран: {query.data} стеллаж",  reply_markup=keyboard) 
+    keys = kb.ButtonsInline(data, 1).buttons()
+    keyboard = kb.PaginationInlineButtons(keys).pagination()
+    query.edit_message_text(text=f"Выбран: {query.data} стеллаж", reply_markup=keyboard) 
     return ITEM
 
 def edit_step(update: Update, context: CallbackContext) -> None:
@@ -166,7 +163,7 @@ def edit_step(update: Update, context: CallbackContext) -> None:
     query.answer()
     data = kb.keyboard_db.ItemFilter().search_name(query.data)
     print(data)
-    query.edit_message_text(text=f"Выбран: {query.data}")
+    query.edit_message_text(text=f"Выбран: {query.data}", reply_markup=kb.item_edit_info(query.data))
     return ITEM
 
 
