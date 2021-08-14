@@ -17,7 +17,7 @@ from telegram.ext import (CallbackContext, Filters,
 from telegram.update import Update
 from telegram.utils.request import Request
 from telegram.utils.helpers import escape_markdown
-import telegram_bot_pagination as pg
+
 
 from django.db.models import Q
 
@@ -36,7 +36,6 @@ logger = logging.getLogger(__name__)
 CHAT_TIMEOUT=60
 
 def log_errors(f):
-
     def inner(*args, **kwargs):
         try:
             return f(*args, **kwargs)
@@ -65,7 +64,6 @@ def photo(update, context) -> None:
     update.message.reply_text(' Штрихкод {}'.format(reply),  parse_mode='Markdown')
 
 def inlinequery(update: Update, _: CallbackContext) -> None:
-
     """Handle the inline query."""
     picture = 'http://s1.iconbird.com/ico/0512/48pxwebiconset/w48h481337350005System.png'
     query = update.inline_query.query
@@ -73,9 +71,8 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
     logger.info('inine: %s', query)
     results = []
     query_list = WarehouseItem.objects.filter(Q(product__name__icontains=query.strip().lower()))
-
-   
     results = []
+
     try:
         for index, (name) in enumerate(query_list):
             try:
@@ -107,8 +104,8 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
                 )
             )
         
-        update.inline_query.answer(results=results, cache_time=20, auto_pagination=True)    
-    
+        update.inline_query.answer(results=results, cache_time=20, auto_pagination=True)
+
     except Exception as e:
         print(e)
 
@@ -117,23 +114,20 @@ SHOW, EDIT, DONE, BACK, SEARCH, ITEMS = range(6)
 
 def menu(update: Update, context: CallbackContext) -> None:
     """Sends a message with three inline buttons attached."""
-    
     update.message.reply_text('Выбери действие', reply_markup=kb.menu_kb)
     return MENU
+
 
 def menu_over(update, _):
     query = update.callback_query
     query.answer()
-
     query.edit_message_text(text=f"Выбери действие", reply_markup=kb.menu_kb)
     return MENU
+
 
 def button(update: Update, context: CallbackContext) -> None:
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
-
-    # CallbackQueries need to be answered, even if no notification to the user is needed
-    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
     query.answer()
     print(query.data)
 
@@ -145,16 +139,15 @@ def rack_menu(update, _):
     keyboard = kb.ButtonsInline(data, 3).new()
     query.edit_message_text(text=f"_", reply_markup=keyboard)
     return RACK
-
  
+
 def place(update, _):
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
     query.answer()
     data = kb.keyboard_db.ItemFilter().search_rack(query.data)
-    keys = kb.ButtonsInline(data, 1).buttons()
-    keyboard = kb.PaginationInlineButtons(keys).pagination()
-    query.edit_message_text(text=f"Выбран: {query.data} стеллаж", reply_markup=keyboard) 
+    print(data)
+    query.edit_message_text(text=f"Выбран: {query.data} стеллаж",) 
     return ITEM
 
 def edit_step(update: Update, context: CallbackContext) -> None:
@@ -202,21 +195,20 @@ class Command(BaseCommand):
 
         menu_handler = ConversationHandler(
             entry_points=[CommandHandler("menu", menu)],
-            states={ # словарь состояний разговора, возвращаемых callback  функциями
+            states={# словарь состояний разговора, возвращаемых callback  функциями
+                
                 MENU: [
                     CallbackQueryHandler(menu_over, pattern='^' + str(BACK) + '$'),
                     CallbackQueryHandler(rack_menu, pattern='^' + str(SHOW) + '$'),
-                    CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'),
-                    
+                    CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'),    
                 ],
+
                 RACK: [
                     CallbackQueryHandler(menu_over, pattern='^' + str(BACK) + '$'),
                     CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'), 
                     CallbackQueryHandler(place, pattern='..'),   
-                    
-                            
-
                 ],
+
                 ITEM: [
                     CallbackQueryHandler(rack_menu, pattern='^' + str(BACK) + '$'),
                     CallbackQueryHandler(edit_step), 
@@ -227,8 +219,6 @@ class Command(BaseCommand):
         )
             
         dp.add_handler(menu_handler)
-        #dp.add_handler(CommandHandler("menu", menu))
-        #dp.add_handler(CallbackQueryHandler(button))
         dp.add_handler(InlineQueryHandler(inlinequery))
         dp.add_handler(MessageHandler(Filters.photo & ~Filters.command, photo))
         dp.add_error_handler(error)

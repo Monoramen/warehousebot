@@ -19,7 +19,6 @@ class ItemFilter:
         self.items = WarehouseItem.objects.filter(product__name__icontains=name)
         print(self.items)
         
-
     def search_rack(self, rack):
         self.items = WarehouseItem.objects.filter(rack__contains=rack)
         for item in self.items:
@@ -27,6 +26,4 @@ class ItemFilter:
         
         return self.product_name
 
-
-#def _get_info(text_message:str) -> ItemInfo:
     

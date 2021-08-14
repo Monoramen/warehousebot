@@ -4,21 +4,6 @@ from tgclient.models import WarehouseItem
 from django.db.models import Q
 import re
 from . import keyboard_db
-from tgclient.rack_choices import RACK_CHOICES
-
-
-racks = []
-rack_keys = []
-for index in RACK_CHOICES:
-    stellazh = index[1][1]
-    if index[1][1] in racks:
-        pass
-    else:
-        racks.append(stellazh)
-for i in racks:
-    rack_keys.append('С' + i)
-
-
 
 MENU, RACK = range(2)
 SHOW, EDIT, DONE, BACK, SEARCH, ITEMS = range(6)
