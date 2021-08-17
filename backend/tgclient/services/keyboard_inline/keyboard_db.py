@@ -23,7 +23,10 @@ class ItemFilter:
         self.items = WarehouseItem.objects.filter(rack__contains=rack)
         for item in self.items:
             self.product_name.append(item.product.name)
-        
-        return self.product_name
+        items_group = [ self.product_name[i:i+5] for i in range(0, len(self.product_name), 5)]
+        return items_group
 
+    def new_rack_list(cls, name):
+        params = cls.search_rack(name)
+        return params
     

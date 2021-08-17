@@ -66,18 +66,3 @@ class ButtonsInline:
         return params
 
 
-class PaginationInlineButtons:
-    def __init__(self, button_list):
-        n = 5
-        self.button_list = button_list
-        self.page_list = [self.button_list[i:i+n] for i in range(0, len(self.button_list), n)]
-
-    def pagination(self):
-        print(len(self.page_list))
-        if len(self.page_list) == 1:
-            page = InlineKeyboardMarkup(self.page_list[0])
-        else:
-            for i in len(self.page_list):
-                page = InlineKeyboardMarkup(self.page_list[i])
-            pass
-        return page
