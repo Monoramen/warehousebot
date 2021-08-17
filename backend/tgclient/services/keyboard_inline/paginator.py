@@ -96,8 +96,7 @@ class InlineKeyboardPaginator:
         keyboard = list()
         print('KEYBOARD  DICT', keyboard_dict)
         keys = list(keyboard_dict.keys())
-        keys.sort()
-        print(self.item_data)
+
         
         for key in keys:
   
@@ -121,7 +120,7 @@ class InlineKeyboardPaginator:
     def markup(self):
         """InlineKeyboardMarkup"""
         keyboards = list()
-
+        print(keyboards)
         keyboards.extend(self._keyboard_before)
         keyboards.append(self.keyboard)
         print('self.keyboard =', self.keyboard)
