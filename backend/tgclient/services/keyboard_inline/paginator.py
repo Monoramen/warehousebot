@@ -121,16 +121,22 @@ class InlineKeyboardPaginator:
         """InlineKeyboardMarkup"""
         keyboards = list()
         print(keyboards)
+        for i in range(0, len(self.item_data)+1, 1):
+            if i == self.current_page:
+                keyboards.append(self.item_data[i][1])
+            else:
+                pass
+
         keyboards.extend(self._keyboard_before)
         keyboards.append(self.keyboard)
         print('self.keyboard =', self.keyboard)
         keyboards.extend(self._keyboard_after)
-
         keyboards = list(filter(bool, keyboards))
-
+        print(self.item_data)
         if not keyboards:
             return None
 
+        print(json.dumps({'inline_keyboard': keyboards}))
         return json.dumps({'inline_keyboard': keyboards})
 
     def __str__(self):
