@@ -104,6 +104,7 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
     except Exception as e:
         print(e)
 
+
 MENU, RACK, ITEM = range(3)
 SHOW, EDIT, DONE, BACK, SEARCH, ITEMS = range(6)
 data_list = [] 
@@ -135,7 +136,7 @@ def rack_menu(update, _):
     keyboard = kb.ButtonsInline(data, 3).new()
     query.edit_message_text(text=f"_", reply_markup=keyboard)
     return RACK
- 
+
 
 def place(update, context):
     """Parses the CallbackQuery and updates the message text."""
@@ -144,12 +145,11 @@ def place(update, context):
     global inline_buttons_pages
     data_list = kb.keyboard_db.ItemFilter().new_rack_list(query.data)
     inline_buttons_pages = data_list
-    print(inline_buttons_pages)
     query.answer()
     paginator = pg.InlineKeyboardPaginator(
         len(inline_buttons_pages),
         item_data=data_list,
-        data_pattern='character#{page}'
+        data_pattern='items#{page}'
     )
 
     query.edit_message_text(
@@ -166,12 +166,13 @@ def place_page_callback(update, context):
     query.answer()
 
     page = int(query.data.split('#')[1])
-
+    global inline_buttons_pages
+    print('DATA IN BOT = ', inline_buttons_pages)
     paginator = pg.InlineKeyboardPaginator(
         len(inline_buttons_pages),
         current_page=page,
-        item_data=data_list,
-        data_pattern='character#{page}'
+        item_data=inline_buttons_pages,
+        data_pattern='items#{page}'
     )
 
     paginator.add_after(InlineKeyboardButton('Go back', callback_data=str(BACK)))
@@ -248,7 +249,7 @@ class Command(BaseCommand):
 
                 ITEM: [
                     CallbackQueryHandler(menu_over, pattern='^' + str(BACK) + '$'),
-                    CallbackQueryHandler(place_page_callback, pattern='^character#' ),
+                    CallbackQueryHandler(place_page_callback, pattern='^items#' ),
                     #CallbackQueryHandler(rack_menu, pattern='^' + str(BACK) + '$'),
                     #CallbackQueryHandler(edit_step), 
                     #CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'),

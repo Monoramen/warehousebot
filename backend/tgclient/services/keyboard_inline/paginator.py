@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 from collections import namedtuple
+from os import kill
 
 InlineKeyboardButton = namedtuple('InlineKeyboardButton', ['text', 'callback_data'])
 
@@ -19,7 +20,6 @@ class InlineKeyboardPaginator:
     def __init__(self , page_count, item_data, current_page=1, data_pattern='{page}'):
         self._keyboard_before = list()
         self._keyboard_after = list()
-        #self.page_buttons = page_buttons
 
         if current_page is None or current_page < 1:
             current_page = 1
@@ -30,6 +30,16 @@ class InlineKeyboardPaginator:
         self.page_count = page_count
         self.item_data = item_data
         self.data_pattern = data_pattern
+        
+    def _build_item_button(self):
+        keyboard_dict = dict()
+        print('Current PAGE', self.current_page)
+        print('items len = ', len(self.item_data))
+        print('items data = ', self.item_data[self.current_page-1])
+        for item in self.item_data[self.current_page-1]:
+            keyboard_dict[f'{item}'] =  item
+        print('keyboard item = ',  keyboard_dict)
+
 
     def _build(self):
         keyboard_dict = dict()
@@ -99,13 +109,15 @@ class InlineKeyboardPaginator:
 
         
         for key in keys:
-  
             keyboard.append(
                 InlineKeyboardButton(
                     text=str(keyboard_dict[key]),
                     callback_data=self.data_pattern.format(page=key)
                 )
             )
+            print('key = ', key)
+
+        self._build_item_button()
         print('PAGE = ', _buttons_to_dict(keyboard))
         return _buttons_to_dict(keyboard)
 
@@ -120,17 +132,15 @@ class InlineKeyboardPaginator:
     def markup(self):
         """InlineKeyboardMarkup"""
         keyboards = list()
-        print(keyboards)
         keyboards.extend(self._keyboard_before)
         keyboards.append(self.keyboard)
-        print('self.keyboard =', self.keyboard)
         keyboards.extend(self._keyboard_after)
 
         keyboards = list(filter(bool, keyboards))
 
         if not keyboards:
             return None
-
+        print('JSON = ',  json.dumps({'inline_keyboard': keyboards}))
         return json.dumps({'inline_keyboard': keyboards})
 
     def __str__(self):
