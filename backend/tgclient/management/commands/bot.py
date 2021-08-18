@@ -1,6 +1,7 @@
 import logging
 from logging import error
-
+from cv2 import data
+from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db.models import Q
