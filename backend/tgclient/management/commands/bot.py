@@ -151,9 +151,9 @@ def place(update, context):
         item_data=data_list,
         data_pattern='items#{page}'
     )
-
+    
     query.edit_message_text(
-        text=inline_buttons_pages[0],
+        text=f'Страница 1 ',
         reply_markup=paginator.markup,
     )
     return ITEM
@@ -178,7 +178,7 @@ def place_page_callback(update, context):
     paginator.add_after(InlineKeyboardButton('Go back', callback_data=str(BACK)))
 
     query.edit_message_text(
-        text=inline_buttons_pages[page - 1],
+        text=f'Страница ',
         reply_markup=paginator.markup,
         parse_mode='Markdown'
     )
