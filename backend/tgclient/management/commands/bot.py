@@ -13,7 +13,7 @@ from telegram.ext import (CallbackContext, CallbackQueryHandler,
                           InlineQueryHandler, MessageHandler, Updater)
 from telegram.update import Update
 from telegram.utils.helpers import escape_markdown
-from telegram.utils.request import ReqЫuest
+from telegram.utils.request import Request
 from tgclient.models import WarehouseItem
 from tgclient.services.barcode.detect_barcode import detect_barcode
 from tgclient.services.keyboard_inline import keyboards as kb
