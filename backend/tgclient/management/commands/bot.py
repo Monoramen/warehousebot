@@ -1,31 +1,25 @@
-from os import kill, name, replace
 import logging
-from uuid import uuid4
 from logging import error
 from cv2 import data
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from telegram import Bot
-from telegram import Update
-from telegram import (InlineQueryResultArticle, ParseMode, InputTextMessageContent)
-from telegram.ext import (CallbackContext, Filters, 
-    MessageHandler, Updater,
-    CommandHandler, CallbackContext,
-    Filters, ConversationHandler,
-    InlineQueryHandler,
-    CallbackQueryHandler,
-)
-from telegram.update import Update
-from telegram.utils.request import Request
-from telegram.utils.helpers import escape_markdown
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-
+from django.core.management.base import BaseCommand
 from django.db.models import Q
-from tgclient.services.keyboard_inline import paginator as pg
+from telegram import (Bot, InlineKeyboardButton, InlineKeyboardMarkup,
+                      InlineQueryResultArticle, InputTextMessageContent,
+                      ParseMode, Update)
+from telegram.ext import (CallbackContext, CallbackQueryHandler,
+                          CommandHandler, ConversationHandler, Filters,
+                          InlineQueryHandler, MessageHandler, Updater)
+from telegram.update import Update
+from telegram.utils.helpers import escape_markdown
+from telegram.utils.request import Request
 from tgclient.models import WarehouseItem
-from tgclient.services.keyboard_inline import keyboards as kb
-from tgclient.services.message.message_controller import add_update_info
 from tgclient.services.barcode.detect_barcode import detect_barcode
+from tgclient.services.keyboard_inline import keyboards as kb
+from tgclient.services.keyboard_inline import paginator as pg
+from tgclient.services.message.message_controller import add_update_info
+
 from .messages import MESSAGE
 
 logging.basicConfig(
@@ -110,6 +104,7 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
     except Exception as e:
         print(e)
 
+
 MENU, RACK, ITEM = range(3)
 SHOW, EDIT, DONE, BACK, SEARCH, ITEMS = range(6)
 data_list = [] 
@@ -141,7 +136,7 @@ def rack_menu(update, _):
     keyboard = kb.ButtonsInline(data, 3).new()
     query.edit_message_text(text=f"_", reply_markup=keyboard)
     return RACK
- 
+
 
 def place(update, context):
     """Parses the CallbackQuery and updates the message text."""
@@ -150,16 +145,15 @@ def place(update, context):
     global inline_buttons_pages
     data_list = kb.keyboard_db.ItemFilter().new_rack_list(query.data)
     inline_buttons_pages = data_list
-    print(inline_buttons_pages)
     query.answer()
     paginator = pg.InlineKeyboardPaginator(
         len(inline_buttons_pages),
         item_data=data_list,
-        data_pattern='character#{page}'
+        data_pattern='items#{page}'
     )
-
+    
     query.edit_message_text(
-        text=inline_buttons_pages[0],
+        text=f'Страница 1 ',
         reply_markup=paginator.markup,
     )
     return ITEM
@@ -172,18 +166,19 @@ def place_page_callback(update, context):
     query.answer()
 
     page = int(query.data.split('#')[1])
-
+    global inline_buttons_pages
+    print('DATA IN BOT = ', inline_buttons_pages)
     paginator = pg.InlineKeyboardPaginator(
         len(inline_buttons_pages),
         current_page=page,
-        item_data=data_list,
-        data_pattern='character#{page}'
+        item_data=inline_buttons_pages,
+        data_pattern='items#{page}'
     )
 
     paginator.add_after(InlineKeyboardButton('Go back', callback_data=str(BACK)))
 
     query.edit_message_text(
-        text=inline_buttons_pages[page - 1],
+        text=f'Страница ',
         reply_markup=paginator.markup,
         parse_mode='Markdown'
     )
@@ -254,7 +249,7 @@ class Command(BaseCommand):
 
                 ITEM: [
                     CallbackQueryHandler(menu_over, pattern='^' + str(BACK) + '$'),
-                    CallbackQueryHandler(place_page_callback, pattern='^character#' ),
+                    CallbackQueryHandler(place_page_callback, pattern='^items#' ),
                     #CallbackQueryHandler(rack_menu, pattern='^' + str(BACK) + '$'),
                     #CallbackQueryHandler(edit_step), 
                     #CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'),
