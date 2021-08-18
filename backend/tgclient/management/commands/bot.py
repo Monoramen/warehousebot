@@ -1,31 +1,24 @@
-from os import kill, name, replace
 import logging
-from uuid import uuid4
 from logging import error
-from cv2 import data
-from django.core.management.base import BaseCommand
-from django.conf import settings
-from telegram import Bot
-from telegram import Update
-from telegram import (InlineQueryResultArticle, ParseMode, InputTextMessageContent)
-from telegram.ext import (CallbackContext, Filters, 
-    MessageHandler, Updater,
-    CommandHandler, CallbackContext,
-    Filters, ConversationHandler,
-    InlineQueryHandler,
-    CallbackQueryHandler,
-)
-from telegram.update import Update
-from telegram.utils.request import Request
-from telegram.utils.helpers import escape_markdown
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
+from django.conf import settings
+from django.core.management.base import BaseCommand
 from django.db.models import Q
-from tgclient.services.keyboard_inline import paginator as pg
+from telegram import (Bot, InlineKeyboardButton, InlineKeyboardMarkup,
+                      InlineQueryResultArticle, InputTextMessageContent,
+                      ParseMode, Update)
+from telegram.ext import (CallbackContext, CallbackQueryHandler,
+                          CommandHandler, ConversationHandler, Filters,
+                          InlineQueryHandler, MessageHandler, Updater)
+from telegram.update import Update
+from telegram.utils.helpers import escape_markdown
+from telegram.utils.request import ReqЫuest
 from tgclient.models import WarehouseItem
-from tgclient.services.keyboard_inline import keyboards as kb
-from tgclient.services.message.message_controller import add_update_info
 from tgclient.services.barcode.detect_barcode import detect_barcode
+from tgclient.services.keyboard_inline import keyboards as kb
+from tgclient.services.keyboard_inline import paginator as pg
+from tgclient.services.message.message_controller import add_update_info
+
 from .messages import MESSAGE
 
 logging.basicConfig(

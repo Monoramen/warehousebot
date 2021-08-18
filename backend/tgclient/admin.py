@@ -1,12 +1,13 @@
-from django.contrib import admin
-from django.utils.safestring import mark_safe
 import import_export
-from .models import ProfileTelegram, Message, Product, WarehouseItem
-from import_export.admin import ImportExportActionModelAdmin
-from import_export import resources
-from import_export import fields
-from import_export.widgets import ForeignKeyWidget
+from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
+from import_export import fields, resources
+from import_export.admin import ImportExportActionModelAdmin
+from import_export.widgets import ForeignKeyWidget
+
+from .models import Message, Product, ProfileTelegram, WarehouseItem
+
 # Register your models here.
 
 @admin.register(ProfileTelegram)
