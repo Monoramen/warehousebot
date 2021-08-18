@@ -2,6 +2,7 @@ from os import kill, name, replace
 import logging
 from uuid import uuid4
 from logging import error
+from cv2 import data
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from telegram import Bot
@@ -17,12 +18,12 @@ from telegram.ext import (CallbackContext, Filters,
 from telegram.update import Update
 from telegram.utils.request import Request
 from telegram.utils.helpers import escape_markdown
-
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 from django.db.models import Q
-
+from tgclient.services.keyboard_inline import paginator as pg
 from tgclient.models import WarehouseItem
-from tgclient.services.keyboarde import keyboards as kb
+from tgclient.services.keyboard_inline import keyboards as kb
 from tgclient.services.message.message_controller import add_update_info
 from tgclient.services.barcode.detect_barcode import detect_barcode
 from .messages import MESSAGE
@@ -111,6 +112,7 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
 
 MENU, RACK, ITEM = range(3)
 SHOW, EDIT, DONE, BACK, SEARCH, ITEMS = range(6)
+data_list = [] 
 
 def menu(update: Update, context: CallbackContext) -> None:
     """Sends a message with three inline buttons attached."""
@@ -141,14 +143,54 @@ def rack_menu(update, _):
     return RACK
  
 
-def place(update, _):
+def place(update, context):
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
     query.answer()
-    data = kb.keyboard_db.ItemFilter().search_rack(query.data)
-    print(data)
-    query.edit_message_text(text=f"Выбран: {query.data} стеллаж",) 
+    global inline_buttons_pages
+    data_list = kb.keyboard_db.ItemFilter().new_rack_list(query.data)
+    inline_buttons_pages = data_list
+    print(inline_buttons_pages)
+    query.answer()
+    paginator = pg.InlineKeyboardPaginator(
+        len(inline_buttons_pages),
+        item_data=data_list,
+        data_pattern='character#{page}'
+    )
+
+    query.edit_message_text(
+        text=inline_buttons_pages[0],
+        reply_markup=paginator.markup,
+    )
     return ITEM
+
+
+
+def place_page_callback(update, context):
+    query = update.callback_query
+
+    query.answer()
+
+    page = int(query.data.split('#')[1])
+
+    paginator = pg.InlineKeyboardPaginator(
+        len(inline_buttons_pages),
+        current_page=page,
+        item_data=data_list,
+        data_pattern='character#{page}'
+    )
+
+    paginator.add_after(InlineKeyboardButton('Go back', callback_data=str(BACK)))
+
+    query.edit_message_text(
+        text=inline_buttons_pages[page - 1],
+        reply_markup=paginator.markup,
+        parse_mode='Markdown'
+    )
+    return ITEM
+
+
+
 
 def edit_step(update: Update, context: CallbackContext) -> None:
     """Parses the CallbackQuery and updates the message text."""
@@ -206,13 +248,16 @@ class Command(BaseCommand):
                 RACK: [
                     CallbackQueryHandler(menu_over, pattern='^' + str(BACK) + '$'),
                     CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'), 
-                    CallbackQueryHandler(place, pattern='..'),   
+                    CallbackQueryHandler(place,),  
+                    
                 ],
 
                 ITEM: [
-                    CallbackQueryHandler(rack_menu, pattern='^' + str(BACK) + '$'),
-                    CallbackQueryHandler(edit_step), 
-                    CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'),
+                    CallbackQueryHandler(menu_over, pattern='^' + str(BACK) + '$'),
+                    CallbackQueryHandler(place_page_callback, pattern='^character#' ),
+                    #CallbackQueryHandler(rack_menu, pattern='^' + str(BACK) + '$'),
+                    #CallbackQueryHandler(edit_step), 
+                    #CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'),
                 ],
                 },
             fallbacks=[CommandHandler("cancel", cancel)],
