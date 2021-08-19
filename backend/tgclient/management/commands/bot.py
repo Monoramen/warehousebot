@@ -6,11 +6,11 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db.models import Q
 from telegram import (Bot, InlineKeyboardButton, InlineKeyboardMarkup,
-                      InlineQueryResultArticle, InputTextMessageContent,
-                      ParseMode, Update)
+                     InlineQueryResultArticle, InputTextMessageContent,
+                    ParseMode, Update)
 from telegram.ext import (CallbackContext, CallbackQueryHandler,
-                          CommandHandler, ConversationHandler, Filters,
-                          InlineQueryHandler, MessageHandler, Updater)
+                        CommandHandler, ConversationHandler, Filters,
+                        InlineQueryHandler, MessageHandler, Updater)
 from telegram.update import Update
 from telegram.utils.helpers import escape_markdown
 from telegram.utils.request import Request
@@ -105,15 +105,14 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
         print(e)
 
 
-MENU, RACK, ITEM = range(3)
-SHOW, EDIT, DONE, BACK, SEARCH, ITEMS = range(6)
-data_list = [] 
+MENU, RACK, ITEM, EDIT = range(4)
+SHOW, DONE, BACK, SEARCH, ITEMS = range(5)
+
 
 def menu(update: Update, context: CallbackContext) -> None:
     """Sends a message with three inline buttons attached."""
     update.message.reply_text('Выбери действие', reply_markup=kb.menu_kb)
     return MENU
-
 
 def menu_over(update, _):
     query = update.callback_query
@@ -121,71 +120,59 @@ def menu_over(update, _):
     query.edit_message_text(text=f"Выбери действие", reply_markup=kb.menu_kb)
     return MENU
 
+def rack_menu(update, _):
+    query = update.callback_query
+    query.answer()
+    data = ['С'+str(i) for i in range(1, 10, 1)]
+    keyboard = kb.ButtonsInline(data, 3).new()
+    query.edit_message_text(text=f"стеллажи", reply_markup=keyboard)
+    return RACK
 
 def button(update: Update, context: CallbackContext) -> None:
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
     query.answer()
-    print(query.data)
+    print( 'НАЖАТО ', query.data)
 
-
-def rack_menu(update, _):
-    query = update.callback_query
-    query.answer()
-    data = ['С'+str(i) for i in range(1,10, 1)]
-    keyboard = kb.ButtonsInline(data, 3).new()
-    query.edit_message_text(text=f"_", reply_markup=keyboard)
-    return RACK
-
-
-def place(update, context):
+def place(update, _):
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
     query.answer()
     global inline_buttons_pages
-    data_list = kb.keyboard_db.ItemFilter().new_rack_list(query.data)
-    inline_buttons_pages = data_list
+    inline_buttons_pages = kb.keyboard_db.ItemFilter().new_rack_list(query.data)
     query.answer()
     paginator = pg.InlineKeyboardPaginator(
         len(inline_buttons_pages),
-        item_data=data_list,
+        item_data=inline_buttons_pages,
         data_pattern='items#{page}'
     )
-    
+    paginator.add_before(InlineKeyboardButton('Добавить', callback_data='add'))
+    paginator.add_after(InlineKeyboardButton('Назад', callback_data=str(SHOW)))
     query.edit_message_text(
-        text=f'Страница 1 ',
+        text=f'{query.data} Страница 1 ',
         reply_markup=paginator.markup,
     )
     return ITEM
 
-
-
-def place_page_callback(update, context):
+def place_page_callback(update, _):
     query = update.callback_query
-
     query.answer()
-
     page = int(query.data.split('#')[1])
     global inline_buttons_pages
-    print('DATA IN BOT = ', inline_buttons_pages)
     paginator = pg.InlineKeyboardPaginator(
         len(inline_buttons_pages),
         current_page=page,
         item_data=inline_buttons_pages,
         data_pattern='items#{page}'
     )
-
-    paginator.add_after(InlineKeyboardButton('Go back', callback_data=str(BACK)))
-
+    paginator.add_before(InlineKeyboardButton('Добавить', callback_data='add'))
+    paginator.add_after(InlineKeyboardButton('Назад', callback_data=str(SHOW)))
     query.edit_message_text(
-        text=f'Страница ',
+        text=f'Страница {page}',
         reply_markup=paginator.markup,
         parse_mode='Markdown'
     )
     return ITEM
-
-
-
 
 def edit_step(update: Update, context: CallbackContext) -> None:
     """Parses the CallbackQuery and updates the message text."""
@@ -193,7 +180,7 @@ def edit_step(update: Update, context: CallbackContext) -> None:
     query.answer()
     data = kb.keyboard_db.ItemFilter().search_name(query.data)
     print(data)
-    query.edit_message_text(text=f"Выбран: {query.data}", reply_markup=kb.item_edit_info(query.data))
+    query.edit_message_text(text=f"Выбран: {data}", parse_mode='Markdown')
     return ITEM
 
 
@@ -235,25 +222,29 @@ class Command(BaseCommand):
             states={# словарь состояний разговора, возвращаемых callback  функциями
                 
                 MENU: [
-                    CallbackQueryHandler(menu_over, pattern='^' + str(BACK) + '$'),
                     CallbackQueryHandler(rack_menu, pattern='^' + str(SHOW) + '$'),
-                    CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'),    
+                    CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'),
+                    CallbackQueryHandler(menu_over, pattern='^' + str(BACK) + '$'), 
                 ],
 
                 RACK: [
                     CallbackQueryHandler(menu_over, pattern='^' + str(BACK) + '$'),
+                    CallbackQueryHandler(place, pattern='^..'),  
                     CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'), 
-                    CallbackQueryHandler(place,),  
+                    
                     
                 ],
 
                 ITEM: [
-                    CallbackQueryHandler(menu_over, pattern='^' + str(BACK) + '$'),
+                    CallbackQueryHandler(rack_menu, pattern='^' + str(SHOW) + '$'),
                     CallbackQueryHandler(place_page_callback, pattern='^items#' ),
-                    #CallbackQueryHandler(rack_menu, pattern='^' + str(BACK) + '$'),
-                    #CallbackQueryHandler(edit_step), 
-                    #CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'),
+                    CallbackQueryHandler(edit_step, pattern='^....'),
                 ],
+
+                EDIT: [
+                    CallbackQueryHandler(edit_step),
+                    CallbackQueryHandler(place_page_callback, pattern='^items#' + str(BACK) ),
+                ]
                 },
             fallbacks=[CommandHandler("cancel", cancel)],
         )

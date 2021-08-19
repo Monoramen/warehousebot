@@ -32,6 +32,11 @@ class InlineKeyboardPaginator:
         self.data_pattern = data_pattern
     @property
     def _build_item_button(self):
+        """ Build item buttons for menu
+
+        Returns:
+            [dict]: [keyboard]
+        """
         keyboard_dict = dict()
         for item in self.item_data[self.current_page-1]:
             keyboard_dict[f'{item}'] =  item
@@ -43,21 +48,18 @@ class InlineKeyboardPaginator:
             keyboard.append(
                 InlineKeyboardButton(
                     text=str(keyboard_dict[key]),
-                    callback_data=str(keyboard_dict[key]),
+                    callback_data=str(keyboard_dict[key[:40]]),
                 )
             )
-            print('key = ', key)
-
         return _buttons_to_dict(keyboard)
-
-
 
     def _build(self):
         keyboard_dict = dict()
 
         if self.page_count == 1:
-            self._keyboard = list()
-            return
+            self._keyboard =  list()
+            print('BEFORE', self._keyboard_before)
+            return 
 
         elif self.page_count <= 5:
             for page in range(1, self.page_count+1):
@@ -139,6 +141,7 @@ class InlineKeyboardPaginator:
     def markup(self):
         """InlineKeyboardMarkup"""
         keyboards = list()
+        
         for item in self._build_item_button:
             keyboards.append([item])
 
@@ -146,11 +149,10 @@ class InlineKeyboardPaginator:
         keyboards.append(self.keyboard)
         keyboards.extend(self._keyboard_after)
         keyboards = list(filter(bool, keyboards))
-        print(self.item_data)
+        print('KEYB', self.keyboard)
         if not keyboards:
             return None
 
-        print(json.dumps({'inline_keyboard': keyboards}))
         return json.dumps({'inline_keyboard': keyboards})
 
     def __str__(self):
