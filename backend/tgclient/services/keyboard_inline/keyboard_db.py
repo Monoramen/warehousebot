@@ -17,13 +17,7 @@ def _get_info(items:list) -> ItemInfo:
         info = item.product.info
         quantity = item.quantity
         rack = item.rack
-
-    return ItemInfo(
-        id=item.product.id,
-        product=item.product.name,
-        info=item.product.info,
-        quantity=item.quantity,
-        rack=item.rack)
+    return ItemInfo(id=id, product=product, info=info, quantity=quantity, rack=rack)
 
 class ItemFilter:
     def __init__(self) -> None:
@@ -37,12 +31,12 @@ class ItemFilter:
             return   _get_info(reloaded_qs)
         else:
             pass
-        
+
     def search_rack(self, rack):
         qs = WarehouseItem.objects.filter(rack__contains=rack)
         reloaded_qs = WarehouseItem.objects.all()
         reloaded_qs.query = pickle.loads(pickle.dumps(qs.query))
- 
+
         if reloaded_qs:
             for item in reloaded_qs:
                 self.product_info.append(item.product.name)
