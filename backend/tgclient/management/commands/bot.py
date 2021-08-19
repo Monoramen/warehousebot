@@ -113,13 +113,13 @@ SHOW, DONE, BACK, SEARCH, ITEMS = range(5)
 
 def menu(update: Update, context: CallbackContext) -> None:
     """Sends a message with three inline buttons attached."""
-    update.message.reply_text('Выбери действие', reply_markup=kb.menu_kb)
+    update.message.reply_text(text=f"======*Выбери действие*======", reply_markup=kb.menu_kb,parse_mode='Markdown')
     return MENU
 
 def menu_over(update, _):
     query = update.callback_query
     query.answer()
-    query.edit_message_text(text=f"Выбери действие", reply_markup=kb.menu_kb)
+    query.edit_message_text(text=f"======*Выбери действие*======", reply_markup=kb.menu_kb,parse_mode='Markdown')
     return MENU
 
 def rack_menu(update, _):
@@ -127,7 +127,7 @@ def rack_menu(update, _):
     query.answer()
     data = ['С'+str(i) for i in range(1, 10, 1)]
     keyboard = kb.ButtonsInline(data, 3).new()
-    query.edit_message_text(text=f"стеллажи", reply_markup=keyboard)
+    query.edit_message_text(text=f"----------*Стеллажи*----------", reply_markup=keyboard,  parse_mode='Markdown')
     return RACK
 
 def button(update: Update, context: CallbackContext) -> None:
@@ -149,10 +149,11 @@ def place(update, _):
         data_pattern='items#{page}'
     )
     paginator.add_before(InlineKeyboardButton('Добавить', callback_data='add'))
-    paginator.add_after(InlineKeyboardButton('Назад', callback_data=str(SHOW)))
+    paginator.add_after(InlineKeyboardButton(emg(':arrow_left: Назад', use_aliases=True), callback_data=str(SHOW)))
     query.edit_message_text(
-        text=f'{query.data} Страница 1 ',
+        text=f'*{query.data} Страница 1 *',
         reply_markup=paginator.markup,
+        parse_mode='Markdown'
     )
     return ITEM
 
@@ -168,9 +169,9 @@ def place_page_callback(update, _):
         data_pattern='items#{page}'
     )
     paginator.add_before(InlineKeyboardButton('Добавить', callback_data='add'))
-    paginator.add_after(InlineKeyboardButton('Назад', callback_data=str(SHOW)))
+    paginator.add_after(InlineKeyboardButton(emg(':arrow_left: Назад', use_aliases=True), callback_data=str(SHOW)))
     query.edit_message_text(
-        text=f'Страница {page}',
+        text=f'* Страница {page}*',
         reply_markup=paginator.markup,
         parse_mode='Markdown'
     )
@@ -184,7 +185,6 @@ def edit_step(update: Update, context: CallbackContext) -> None:
     print(data)
     query.edit_message_text(text=f"Выбран: {data}", parse_mode='Markdown')
     return ITEM
-
 
 def done(update, _):
     """Возвращает `ConversationHandler.END`, который говорит 
