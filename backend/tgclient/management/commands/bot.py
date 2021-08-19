@@ -1,12 +1,13 @@
 import logging
 from logging import error
+
+from emoji import emojize as emg
 from cv2 import data
-from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db.models import Q
 from telegram import (Bot, InlineKeyboardButton, InlineKeyboardMarkup,
-                     InlineQueryResultArticle, InputTextMessageContent,
+                    InlineQueryResultArticle, InputTextMessageContent,
                     ParseMode, Update)
 from telegram.ext import (CallbackContext, CallbackQueryHandler,
                         CommandHandler, ConversationHandler, Filters,
@@ -44,7 +45,8 @@ def start(update: Update, _: CallbackContext) -> None:
     logger.info('Command: %s', '/start was press')
     add_update_info(update.message)
     
-    update.message.reply_text(MESSAGE['start'], parse_mode='Markdown')
+    
+    update.message.reply_text(MESSAGE['start'].format(emg(':new_moon_with_face:',  use_aliases=True)),  parse_mode='Markdown')
 
 def help_command(update: Update, context: CallbackContext) -> None:
     logger.info('Command: %s', '/help')
@@ -139,7 +141,7 @@ def place(update, _):
     query = update.callback_query
     query.answer()
     global inline_buttons_pages
-    inline_buttons_pages = kb.keyboard_db.ItemFilter().new_rack_list(query.data)
+    inline_buttons_pages = kb.keyboard_db.ItemFilter().search_rack(query.data)
     query.answer()
     paginator = pg.InlineKeyboardPaginator(
         len(inline_buttons_pages),
@@ -189,14 +191,14 @@ def done(update, _):
     `ConversationHandler` что разговор окончен"""
     query = update.callback_query
     query.answer()
-    query.edit_message_text(text='Увидимся еще')
+    query.edit_message_text(MESSAGE['bye'].format(emg(':monkey:',  use_aliases=True)),  parse_mode='Markdown')
     return ConversationHandler.END
 
 def cancel(update: Update, context: CallbackContext) -> int:
     """Cancels and ends the conversation."""
     user = update.message.from_user
     logger.info("User %s canceled the conversation.", user.first_name)
-    update.message.reply_text('Увидимся', reply_markup=kb.ReplyKeyboardRemove())
+    update.message.reply_text(MESSAGE['bye'].format(emg(':panda_face:',  use_aliases=True)), parse_mode='Markdown')
     return ConversationHandler.END
 
 

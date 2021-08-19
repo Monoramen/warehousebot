@@ -29,23 +29,14 @@ class ItemFilter:
     def __init__(self) -> None:
         self.product_info = list()
         
-
     def search_name(self, name):
         qs = WarehouseItem.objects.filter(product__name__icontains=name)
         reloaded_qs = WarehouseItem.objects.all()
         reloaded_qs.query = pickle.loads(pickle.dumps(qs.query))
         self.items = reloaded_qs 
-        print('Полученные данные', self.items)
-        for item in self.items:
-            print(item.product.name)
-            print(item.product.info)
-            print(item.rack)
-            print(item.status)
-            print(item.quantity)
-            info = f'*{item.product.name}* \n_{item.product.info}_\nНаходится -> *{item.rack}*\nКол-во: {item.quantity} шт.'
-        data = _get_info(self.items)
+        data = _get_info(reloaded_qs)
         print(data)
-        return  info
+        return  data.product
         
     def search_rack(self, rack):
         qs = WarehouseItem.objects.filter(rack__contains=rack)
@@ -58,10 +49,4 @@ class ItemFilter:
             items_group = [ self.product_info[i:i+5] for i in range(0, len(self.product_info), 5)]
         else:
             items_group = ['пусто']
-
         return items_group
-
-    def new_rack_list(cls, name):
-        params = cls.search_rack(name)
-        return params
-    
