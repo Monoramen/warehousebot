@@ -10,22 +10,13 @@ SHOW, DONE, BACK, SEARCH, ITEMS = range(5)
 footer_kb =  [ InlineKeyboardButton("Назад", callback_data=str(BACK))]
 
 menu_kb =  InlineKeyboardMarkup([
-        [InlineKeyboardButton("Cтеллажи", callback_data=str(SHOW)), InlineKeyboardButton("Найти", callback_data=str(SEARCH))],
-        [InlineKeyboardButton("Завершить", callback_data=str(DONE))],
+        [InlineKeyboardButton('Cтеллажи', callback_data=str(SHOW)), InlineKeyboardButton('Найти', callback_data=str(SEARCH))],
+        [InlineKeyboardButton('Завершить', callback_data=str(DONE))],
     ])
 
-
-def item_edit_info(name):
-    items = WarehouseItem.objects.filter(product__name__icontains=name)
-    print(items)
-    btn_list  = []
-    for index, (name) in enumerate(items):
-        #result += f'количество {name.quantity} шт., место: {name.rack}, {name.product.info} '
-        keyboard = [InlineKeyboardButton(text = f'кол-во {name.quantity}', callback_data = 'EDIT'), InlineKeyboardButton(text = f'место {name.rack}', callback_data = name.rack)]
-    btn_list.append(keyboard)
-    btn_list.append(footer_kb)
-
-    return InlineKeyboardMarkup(btn_list)
+edit_kb = InlineKeyboardMarkup([
+    [InlineKeyboardButton('Количество', callback_data='quantity'), InlineKeyboardButton('Место', callback_data='rack' )], 
+    ])
 
 
 class ButtonsInline:

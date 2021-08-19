@@ -183,8 +183,15 @@ def edit_step(update: Update, context: CallbackContext) -> None:
     query.answer()
     data = kb.keyboard_db.ItemFilter().search_name(query.data)
     print(data)
-    query.edit_message_text(text=f"Выбран: {data}", parse_mode='Markdown')
-    return ITEM
+    query.edit_message_text(
+        text=f"Выбран: {data}",
+        reply_markup=kb.edit_kb,
+        parse_mode='Markdown')
+    return EDIT
+
+
+
+
 
 def done(update, _):
     """Возвращает `ConversationHandler.END`, который говорит 
