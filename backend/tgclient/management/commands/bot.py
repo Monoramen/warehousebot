@@ -106,10 +106,9 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
     except Exception as e:
         print(e)
 
-
+"""" MENU """
 MENU, RACK, ITEM, EDIT = range(4)
 SHOW, DONE, BACK, SEARCH, ITEMS = range(5)
-
 
 def menu(update: Update, context: CallbackContext) -> None:
     """Sends a message with three inline buttons attached."""
@@ -189,10 +188,6 @@ def edit_step(update: Update, context: CallbackContext) -> None:
         parse_mode='Markdown')
     return EDIT
 
-
-
-
-
 def done(update, _):
     """Возвращает `ConversationHandler.END`, который говорит 
     `ConversationHandler` что разговор окончен"""
@@ -228,14 +223,12 @@ class Command(BaseCommand):
 
         menu_handler = ConversationHandler(
             entry_points=[CommandHandler("menu", menu)],
-            states={# словарь состояний разговора, возвращаемых callback  функциями
-                
+            states={
                 MENU: [
                     CallbackQueryHandler(rack_menu, pattern='^' + str(SHOW) + '$'),
                     CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'),
                     CallbackQueryHandler(menu_over, pattern='^' + str(BACK) + '$'), 
                 ],
-
                 RACK: [
                     CallbackQueryHandler(menu_over, pattern='^' + str(BACK) + '$'),
                     CallbackQueryHandler(place, pattern='^..'),  
@@ -243,25 +236,21 @@ class Command(BaseCommand):
                     
                     
                 ],
-
                 ITEM: [
                     CallbackQueryHandler(rack_menu, pattern='^' + str(SHOW) + '$'),
                     CallbackQueryHandler(place_page_callback, pattern='^items#' ),
                     CallbackQueryHandler(edit_step, pattern='^....'),
                 ],
-
                 EDIT: [
                     CallbackQueryHandler(edit_step),
                     CallbackQueryHandler(place_page_callback, pattern='^items#' + str(BACK) ),
                 ]
                 },
             fallbacks=[CommandHandler("cancel", cancel)],
-        )
-            
+            )
         dp.add_handler(menu_handler)
         dp.add_handler(InlineQueryHandler(inlinequery))
         dp.add_handler(MessageHandler(Filters.photo & ~Filters.command, photo))
         dp.add_error_handler(error)
-        
         updater.start_polling()
         updater.idle()
