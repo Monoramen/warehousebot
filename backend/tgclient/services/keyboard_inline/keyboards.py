@@ -16,6 +16,7 @@ menu_kb =  InlineKeyboardMarkup([
 
 edit_kb = InlineKeyboardMarkup([
     [InlineKeyboardButton('Количество', callback_data='quantity'), InlineKeyboardButton('Место', callback_data='rack' )], 
+    [InlineKeyboardButton('Назад', callback_data=str(BACK))]
     ])
 
 

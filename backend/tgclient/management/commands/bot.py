@@ -242,8 +242,9 @@ class Command(BaseCommand):
                     CallbackQueryHandler(edit_step, pattern='^....'),
                 ],
                 EDIT: [
+                    CallbackQueryHandler(place,  str(BACK) ),
                     CallbackQueryHandler(edit_step),
-                    CallbackQueryHandler(place_page_callback, pattern='^items#' + str(BACK) ),
+                    
                 ]
                 },
             fallbacks=[CommandHandler("cancel", cancel)],
