@@ -19,7 +19,6 @@ edit_kb = InlineKeyboardMarkup([
     [InlineKeyboardButton('Назад', callback_data=str(BACK))]
     ])
 
-
 class ButtonsInline:
     def __init__(self, data_list: list, width: int):
         self.data_list = data_list

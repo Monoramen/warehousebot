@@ -44,8 +44,6 @@ def start(update: Update, _: CallbackContext) -> None:
     """Send a message when the command /start is issued."""
     logger.info('Command: %s', '/start was press')
     add_update_info(update.message)
-    
-    
     update.message.reply_text(MESSAGE['start'].format(emg(':new_moon_with_face:',  use_aliases=True)),  parse_mode='Markdown')
 
 def help_command(update: Update, context: CallbackContext) -> None:
