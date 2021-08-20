@@ -1,11 +1,9 @@
 import logging
 from logging import error
-
 from emoji import emojize as emg
-from cv2 import data
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.db.models import Q
+from django.db.models import Q, query
 from telegram import (Bot, InlineKeyboardButton, InlineKeyboardMarkup,
                     InlineQueryResultArticle, InputTextMessageContent,
                     ParseMode, Update)
@@ -20,16 +18,19 @@ from tgclient.services.barcode.detect_barcode import detect_barcode
 from tgclient.services.keyboard_inline import keyboards as kb
 from tgclient.services.keyboard_inline import paginator as pg
 from tgclient.services.message.message_controller import add_update_info
-
 from .messages import MESSAGE
+
+"""" MENU """
+MENU, RACK, ITEMS, ITEM, EDIT = range(5)
+SHOW, DONE, BACK, SEARCH = range(4)
+CHAT_TIMEOUT=60
+
+global item_data_edit ####Turple with data selected item
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
 )
-
 logger = logging.getLogger(__name__)
-
-CHAT_TIMEOUT=60
 
 def log_errors(f):
     def inner(*args, **kwargs):
@@ -104,11 +105,8 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
     except Exception as e:
         print(e)
 
-"""" MENU """
-MENU, RACK, ITEM, EDIT = range(4)
-SHOW, DONE, BACK, SEARCH, ITEMS = range(5)
-
 def menu(update: Update, context: CallbackContext) -> None:
+    logger.info('Inline MENU start: %s', update.message.from_user.username )
     """Sends a message with three inline buttons attached."""
     update.message.reply_text(text=f"======*Выбери действие*======", reply_markup=kb.menu_kb,parse_mode='Markdown')
     return MENU
@@ -116,27 +114,24 @@ def menu(update: Update, context: CallbackContext) -> None:
 def menu_over(update, _):
     query = update.callback_query
     query.answer()
+    logger.info('Inline MENU return: %s', query.data)
     query.edit_message_text(text=f"======*Выбери действие*======", reply_markup=kb.menu_kb,parse_mode='Markdown')
     return MENU
 
 def rack_menu(update, _):
     query = update.callback_query
     query.answer()
+    logger.info('Inline RACK menu return: %s', query.data)
     data = ['С'+str(i) for i in range(1, 10, 1)]
     keyboard = kb.ButtonsInline(data, 3).new()
     query.edit_message_text(text=f"----------*Стеллажи*----------", reply_markup=keyboard,  parse_mode='Markdown')
     return RACK
 
-def button(update: Update, context: CallbackContext) -> None:
-    """Parses the CallbackQuery and updates the message text."""
-    query = update.callback_query
-    query.answer()
-    print( 'НАЖАТО ', query.data)
-
 def place(update, _):
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
     query.answer()
+    logger.info('Inline RACK place return: %s', query.data)
     global inline_buttons_pages
     inline_buttons_pages = kb.keyboard_db.ItemFilter().search_rack(query.data)
     query.answer()
@@ -152,12 +147,13 @@ def place(update, _):
         reply_markup=paginator.markup,
         parse_mode='Markdown'
     )
-    return ITEM
+    return ITEMS
 
 def place_page_callback(update, _):
     query = update.callback_query
     query.answer()
     page = int(query.data.split('#')[1])
+    logger.info('Inline RACK place callback return: %s', query.data)
     global inline_buttons_pages
     paginator = pg.InlineKeyboardPaginator(
         len(inline_buttons_pages),
@@ -172,17 +168,39 @@ def place_page_callback(update, _):
         reply_markup=paginator.markup,
         parse_mode='Markdown'
     )
-    return ITEM
+    return ITEMS
 
 def edit_step(update: Update, context: CallbackContext) -> None:
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
     query.answer()
-    data = kb.keyboard_db.ItemFilter().search_name(query.data)
-    print(data)
+    global item_data_edit ####Turple with data selected item
+    item_data_edit = kb.keyboard_db.ItemFilter().search_name(query.data)
+    logger.info('Inline EDIT step callback return: %s', item_data_edit)
+    if item_data_edit == None:
+        return ITEMS
+    else:
+        query.edit_message_text(
+            text=f"Выбран: {item_data_edit}",
+            reply_markup=kb.edit_kb,
+            parse_mode='Markdown')
+        return EDIT
+
+def quantity_edit(update: Update, context: CallbackContext):
+    query = update.callback_query
+    query.answer()
+    logger.info('Inline quantity edit callback return: %s', query.data)
     query.edit_message_text(
-        text=f"Выбран: {data}",
-        reply_markup=kb.edit_kb,
+        text=f"*Напиши мне числом сколько штук ты забрал со склада чтобы я знал*\n{item_data_edit}",
+        parse_mode='Markdown')
+    return EDIT
+
+def rack_edit(update: Update, context: CallbackContext):
+    query = update.callback_query
+    query.answer()
+    logger.info('Inline rack edit step return: %s', item_data_edit)
+    query.edit_message_text(
+        text=f"*Впиши 3 цифры*  `111` или `213`\n_(1 - Стеллаж, 2 - Полка, 3 - Место_)\n{item_data_edit}",
         parse_mode='Markdown')
     return EDIT
 
@@ -191,13 +209,14 @@ def done(update, _):
     `ConversationHandler` что разговор окончен"""
     query = update.callback_query
     query.answer()
+    logger.info('Inline DONE return: %s', query.data)
     query.edit_message_text(MESSAGE['bye'].format(emg(':monkey:',  use_aliases=True)),  parse_mode='Markdown')
     return ConversationHandler.END
 
 def cancel(update: Update, context: CallbackContext) -> int:
     """Cancels and ends the conversation."""
     user = update.message.from_user
-    logger.info("User %s canceled the conversation.", user.first_name)
+    logger.info("User %s canceled the conversation.", user.username)
     update.message.reply_text(MESSAGE['bye'].format(emg(':panda_face:',  use_aliases=True)), parse_mode='Markdown')
     return ConversationHandler.END
 
@@ -234,14 +253,19 @@ class Command(BaseCommand):
                     
                     
                 ],
-                ITEM: [
+                ITEMS: [
                     CallbackQueryHandler(rack_menu, pattern='^' + str(SHOW) + '$'),
                     CallbackQueryHandler(place_page_callback, pattern='^items#' ),
                     CallbackQueryHandler(edit_step, pattern='^....'),
                 ],
-                EDIT: [
+                ITEM: [
                     CallbackQueryHandler(place,  str(BACK) ),
-                    CallbackQueryHandler(edit_step),
+                    CallbackQueryHandler(edit_step, pattern='^....'),
+                    
+                ],
+                EDIT: [
+                    CallbackQueryHandler(quantity_edit, pattern='^quantity$'),
+                    CallbackQueryHandler(rack_edit, pattern='^rack$'),
                 ]
                 },
             fallbacks=[CommandHandler("cancel", cancel)],

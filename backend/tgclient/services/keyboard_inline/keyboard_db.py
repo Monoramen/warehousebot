@@ -19,6 +19,16 @@ def _get_info(items:list) -> ItemInfo:
         rack = item.rack
     return ItemInfo(id=id, product=product, info=info, quantity=quantity, rack=rack)
 
+def update_quantity(items:list):
+    data = _get_info(items)
+    print(data)
+
+
+
+
+
+
+
 class ItemFilter:
     def __init__(self) -> None:
         self.product_info = list()

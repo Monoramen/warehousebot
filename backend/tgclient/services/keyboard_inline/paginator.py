@@ -58,7 +58,6 @@ class InlineKeyboardPaginator:
 
         if self.page_count == 1:
             self._keyboard =  list()
-            print('BEFORE', self._keyboard_before)
             return 
 
         elif self.page_count <= 5:
@@ -149,7 +148,6 @@ class InlineKeyboardPaginator:
         keyboards.append(self.keyboard)
         keyboards.extend(self._keyboard_after)
         keyboards = list(filter(bool, keyboards))
-        print('KEYB', self.keyboard)
         if not keyboards:
             return None
 

@@ -5,8 +5,8 @@ from django.db.models import Q
 import re
 from . import keyboard_db
 
-MENU, RACK, ITEM, EDIT = range(4)
-SHOW, DONE, BACK, SEARCH, ITEMS = range(5)
+MENU, RACK, ITEMS, ITEM, EDIT = range(5)
+SHOW, DONE, BACK, SEARCH = range(4)
 footer_kb =  [ InlineKeyboardButton("Назад", callback_data=str(BACK))]
 
 menu_kb =  InlineKeyboardMarkup([
@@ -18,6 +18,9 @@ edit_kb = InlineKeyboardMarkup([
     [InlineKeyboardButton('Количество', callback_data='quantity'), InlineKeyboardButton('Место', callback_data='rack' )], 
     [InlineKeyboardButton('Назад', callback_data=str(BACK))]
     ])
+
+
+
 
 class ButtonsInline:
     def __init__(self, data_list: list, width: int):
@@ -55,5 +58,3 @@ class ButtonsInline:
     def buttons(cls):
         params = cls.create_buttons()
         return params
-
-
