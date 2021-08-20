@@ -12,19 +12,17 @@ class ItemInfo(NamedTuple):
 
 def _get_info(items:list) -> ItemInfo:
     for item in items:
-        id = item.product.id
+        id = int(item.id)
         product = item.product.name
         info = item.product.info
         quantity = item.quantity
         rack = item.rack
     return ItemInfo(id=id, product=product, info=info, quantity=quantity, rack=rack)
 
-def update_quantity(items:list):
-    data = _get_info(items)
-    print(data)
-
-
-
+def update_quantity(items:list, digit:int):
+    print('itemid', items.id)
+    print('QUANTITY=', items.quantity)
+    return WarehouseItem.objects.filter(id=items.id).update(quantity = digit)
 
 
 

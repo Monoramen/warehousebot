@@ -205,8 +205,14 @@ def rack_edit(update: Update, context: CallbackContext):
     return EDIT
 
 def get_count(update: Update, context: CallbackContext):
-    user = update.message.text
-    print(user)
+    digit = update.message.text
+    print(digit)
+    print('DATASET = ', item_data_edit)
+
+    kb.keyboard_db.update_quantity(item_data_edit, digit=int(digit))
+    update.message.reply_text(
+        text=f"*Обновлено* \n",
+        parse_mode='Markdown')
     return EDIT
 
 def done(update, _):
@@ -214,6 +220,7 @@ def done(update, _):
     `ConversationHandler` что разговор окончен"""
     query = update.callback_query
     query.answer()
+
     logger.info('Inline DONE return: %s', query.data)
     query.edit_message_text(MESSAGE['bye'].format(emg(':monkey:',  use_aliases=True)),  parse_mode='Markdown')
     return ConversationHandler.END
@@ -266,8 +273,10 @@ class Command(BaseCommand):
                 ],
                 EDIT: [
                     CallbackQueryHandler(quantity_edit, pattern='^quantity$'),
+                    CallbackQueryHandler(done, pattern='^Обновлено$'),
                     CallbackQueryHandler(rack_edit, pattern='^rack$'),
-                    MessageHandler(Filters.regex('^\d+$'), get_count),
+                    MessageHandler(Filters.regex('^\d{,5}$'), get_count),
+                    
                 ]
                 },
             fallbacks=[CommandHandler("cancel", cancel)],
