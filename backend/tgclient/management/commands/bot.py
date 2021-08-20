@@ -191,7 +191,7 @@ def quantity_edit(update: Update, context: CallbackContext):
     query.answer()
     logger.info('Inline quantity edit callback return: %s', query.data)
     query.edit_message_text(
-        text=f"*Напиши мне числом сколько штук ты забрал со склада чтобы я знал*\n{item_data_edit}",
+        text=f"*Напиши мне числом сколько штук ты забрал со склада, я запишу*\n{item_data_edit}",
         parse_mode='Markdown')
     return EDIT
 
@@ -202,6 +202,11 @@ def rack_edit(update: Update, context: CallbackContext):
     query.edit_message_text(
         text=f"*Впиши 3 цифры*  `111` или `213`\n_(1 - Стеллаж, 2 - Полка, 3 - Место_)\n{item_data_edit}",
         parse_mode='Markdown')
+    return EDIT
+
+def get_count(update: Update, context: CallbackContext):
+    user = update.message.text
+    print(user)
     return EDIT
 
 def done(update, _):
@@ -229,14 +234,12 @@ class Command(BaseCommand):
             con_pool_size=10,
             connect_timeout=0.5,
             read_timeout=1.0
-        )     
-        
+        )         
         bot = Bot(request=request, token=settings.TOKEN)
         updater = Updater(bot=bot, use_context= True)
         dp = updater.dispatcher
         dp.add_handler(CommandHandler('start', start))
         dp.add_handler(CommandHandler("help", help_command))
-
 
         menu_handler = ConversationHandler(
             entry_points=[CommandHandler("menu", menu)],
@@ -250,8 +253,6 @@ class Command(BaseCommand):
                     CallbackQueryHandler(menu_over, pattern='^' + str(BACK) + '$'),
                     CallbackQueryHandler(place, pattern='^..'),  
                     CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'), 
-                    
-                    
                 ],
                 ITEMS: [
                     CallbackQueryHandler(rack_menu, pattern='^' + str(SHOW) + '$'),
@@ -266,6 +267,7 @@ class Command(BaseCommand):
                 EDIT: [
                     CallbackQueryHandler(quantity_edit, pattern='^quantity$'),
                     CallbackQueryHandler(rack_edit, pattern='^rack$'),
+                    MessageHandler(Filters.regex('^\d+$'), get_count),
                 ]
                 },
             fallbacks=[CommandHandler("cancel", cancel)],
