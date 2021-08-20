@@ -242,7 +242,6 @@ class Command(BaseCommand):
                 EDIT: [
                     CallbackQueryHandler(place,  str(BACK) ),
                     CallbackQueryHandler(edit_step),
-                    
                 ]
                 },
             fallbacks=[CommandHandler("cancel", cancel)],
