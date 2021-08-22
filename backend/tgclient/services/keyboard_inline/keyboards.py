@@ -4,19 +4,21 @@ from tgclient.models import WarehouseItem
 from django.db.models import Q
 import re
 from . import keyboard_db
-
+import emoji
 MENU, RACK, ITEMS, ITEM, EDIT = range(5)
 SHOW, DONE, BACK, SEARCH = range(4)
 footer_kb =  [ InlineKeyboardButton("Назад", callback_data=str(BACK))]
 
+done_kb = InlineKeyboardButton(emoji.emojize(':heavy_check_mark: Завершить', use_aliases=True), callback_data=str(DONE))
+
+
 menu_kb =  InlineKeyboardMarkup([
         [InlineKeyboardButton('Cтеллажи', callback_data=str(SHOW)), InlineKeyboardButton('Найти', callback_data=str(SEARCH))],
-        [InlineKeyboardButton('Завершить', callback_data=str(DONE))],
+        [done_kb],
     ])
 
 edit_kb = InlineKeyboardMarkup([
-    [InlineKeyboardButton('Количество', callback_data='quantity'), InlineKeyboardButton('Место', callback_data='rack' )], 
-    [InlineKeyboardButton('Назад', callback_data=str(BACK))]
+    [InlineKeyboardButton('Назад', callback_data=str(BACK)), done_kb ]
     ])
 
 

@@ -18,7 +18,7 @@ from tgclient.services.barcode.detect_barcode import detect_barcode
 from tgclient.services.keyboard_inline import keyboards as kb
 from tgclient.services.keyboard_inline import paginator as pg
 from tgclient.services.message.message_controller import add_update_info
-from .messages import MESSAGE
+from .messages import MESSAGE, data_item_pattern
 
 """" MENU """
 MENU, RACK, ITEMS, ITEM, EDIT = range(5)
@@ -162,7 +162,7 @@ def place_page_callback(update, _):
         data_pattern='items#{page}'
     )
     paginator.add_before(InlineKeyboardButton('Добавить', callback_data='add'))
-    paginator.add_after(InlineKeyboardButton(emg(':arrow_left: Назад', use_aliases=True), callback_data=str(SHOW)))
+    paginator.add_after(InlineKeyboardButton('Назад', callback_data=str(SHOW)))
     query.edit_message_text(
         text=f'* Страница {page}*',
         reply_markup=paginator.markup,
@@ -181,39 +181,19 @@ def edit_step(update: Update, context: CallbackContext) -> None:
         return ITEMS
     else:
         query.edit_message_text(
-            text=f"Выбран: {item_data_edit}",
+            text=emg(MESSAGE['edit_step'].format(data_item_pattern(item_data_edit)),  use_aliases=True),
             reply_markup=kb.edit_kb,
             parse_mode='Markdown')
         return EDIT
 
-def quantity_edit(update: Update, context: CallbackContext):
-    query = update.callback_query
-    query.answer()
-    logger.info('Inline quantity edit callback return: %s', query.data)
-    query.edit_message_text(
-        text=f"*Напиши мне числом сколько штук ты забрал со склада, я запишу*\n{item_data_edit}",
-        parse_mode='Markdown')
-    return EDIT
-
-def rack_edit(update: Update, context: CallbackContext):
-    query = update.callback_query
-    query.answer()
-    logger.info('Inline rack edit step return: %s', item_data_edit)
-    query.edit_message_text(
-        text=f"*Впиши 3 цифры*  `111` или `213`\n_(1 - Стеллаж, 2 - Полка, 3 - Место_)\n{item_data_edit}",
-        parse_mode='Markdown')
-    return EDIT
-
 def get_count(update: Update, context: CallbackContext):
     digit = update.message.text
     print(digit)
-    print('DATASET = ', item_data_edit)
-
     kb.keyboard_db.update_quantity(item_data_edit, digit=int(digit))
     update.message.reply_text(
         text=f"*Обновлено* \n",
         parse_mode='Markdown')
-    return EDIT
+    return DONE
 
 def done(update, _):
     """Возвращает `ConversationHandler.END`, который говорит 
@@ -222,7 +202,7 @@ def done(update, _):
     query.answer()
 
     logger.info('Inline DONE return: %s', query.data)
-    query.edit_message_text(MESSAGE['bye'].format(emg(':monkey:',  use_aliases=True)),  parse_mode='Markdown')
+    query.edit_message_text(MESSAGE['bye'].format(emg(':eyes:', use_aliases=True)),  parse_mode='Markdown')
     return ConversationHandler.END
 
 def cancel(update: Update, context: CallbackContext) -> int:
@@ -272,11 +252,9 @@ class Command(BaseCommand):
                     
                 ],
                 EDIT: [
-                    CallbackQueryHandler(quantity_edit, pattern='^quantity$'),
-                    CallbackQueryHandler(done, pattern='^Обновлено$'),
-                    CallbackQueryHandler(rack_edit, pattern='^rack$'),
+                    CallbackQueryHandler(rack_menu,  pattern='^' + str(BACK) + '$'),
+                    CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'), 
                     MessageHandler(Filters.regex('^\d{,5}$'), get_count),
-                    
                 ]
                 },
             fallbacks=[CommandHandler("cancel", cancel)],
