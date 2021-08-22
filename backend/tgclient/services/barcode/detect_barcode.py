@@ -1,10 +1,12 @@
 from cv2 import data
 import numpy as np
+import argparse
 import cv2
 from PIL import Image
 from pyzbar.pyzbar import decode
 from urllib.request import Request, urlopen
 import numpy as np
+import requests
 import ssl
 from bs4 import BeautifulSoup
 

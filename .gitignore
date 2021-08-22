@@ -5,3 +5,4 @@
 **/migrations/
 *.sqlite3
 **/buckend/media/uploads/
+**/buckend/media/static/
