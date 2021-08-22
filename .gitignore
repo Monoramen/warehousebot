@@ -4,4 +4,4 @@
 **/__pycache__/
 **/migrations/
 .sqllite3
-**/buckend/media/upload/
+**/buckend/media/uploads/
