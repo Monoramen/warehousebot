@@ -71,3 +71,5 @@ class WarehouseItemAdmin(ImportExportActionModelAdmin):
             obj.qr_code.path,
         )
     image_data.short_description = u'picture'
+    
+    
