@@ -1,12 +1,13 @@
-from django.contrib import admin
-from django.utils.safestring import mark_safe
 import import_export
-from .models import ProfileTelegram, Message, Product, WarehouseItem
-from import_export.admin import ImportExportActionModelAdmin
-from import_export import resources
-from import_export import fields
-from import_export.widgets import ForeignKeyWidget
+from django.contrib import admin
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
+from import_export import fields, resources
+from import_export.admin import ImportExportActionModelAdmin
+from import_export.widgets import ForeignKeyWidget
+
+from .models import Message, Product, ProfileTelegram, WarehouseItem
+
 # Register your models here.
 
 @admin.register(ProfileTelegram)
@@ -54,8 +55,8 @@ class ProductAdmin(ImportExportActionModelAdmin):
 class WarehouseItemAdmin(ImportExportActionModelAdmin):
     resource_class = WarehouseItemResource
     autocomplete_fields = ['product']
-    search_fields = ['product__name', 'rack']
-    list_filter = ('product', 'receipt_date','rack')
+    search_fields = ['product__name', 'product__info', 'rack']
+    list_filter = ('receipt_date','rack')
     readonly_fields = ['get_image']
     list_display = ('product', 'quantity', 'status', 'rack', 'receipt_date', 'comments',)
         
@@ -70,5 +71,3 @@ class WarehouseItemAdmin(ImportExportActionModelAdmin):
             obj.qr_code.path,
         )
     image_data.short_description = u'picture'
-    
-    
