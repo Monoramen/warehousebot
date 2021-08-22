@@ -15,14 +15,13 @@ media = FileSystemStorage(location='backend/media')
 
 # Create your models here
 class ProfileTelegram(models.Model):
-    tg_id = models.CharField('Chat ID', max_length=200, blank=True, null=True,
-                             unique=True)
+    tg_id = models.CharField('Chat ID', max_length=200, blank=True, null=True, unique=True)
     tg_first_name = models.CharField('first name', max_length=200, blank=True, null=True)
     tg_last_name = models.CharField('last name', max_length=200, blank=True, null=True)
     tg_username = models.CharField('username', max_length=200, blank=True, null=True)
     tg_photo_url = models.CharField(max_length=200, blank=True, null=True)
     tg_auth_date = models.CharField(max_length=200, blank=True, null=True)
-#    tg_hash = models.CharField(max_length=200, blank=True, null=True)
+
     def __str__(self):
         return ''.join(f'{self.tg_id}, {self.tg_username}')
     
@@ -38,7 +37,6 @@ class ProfileTelegram(models.Model):
         user.tg_username = data.get('username', '')
         user.tg_photo_url = data.get('photo_url', '')
         user.tg_auth_date = data.get('auth_date', '')
- #       user.tg_hash = data.get('hash', '')
         return user
 
 
@@ -112,7 +110,7 @@ class WarehouseItem(ItemProduct):
         )
         qr.add_data(self.product.name)
         qr.make(fit = True)
-        qrcode_img = qr.make_image(fill_color = "black", back_color = '#d4f4f5')
+        qrcode_img = qr.make_image(fill_color = "black", back_color = 'white')
         print(qrcode_img.size)
         
         canvas = Image.new('RGB', (qrcode_img.size), 'white')
