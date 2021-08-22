@@ -3,5 +3,5 @@
 .env
 **/__pycache__/
 **/migrations/
-.sqllite3
+*.sqlite3
 **/buckend/media/uploads/
