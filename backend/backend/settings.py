@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
-import os
+import os.path
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -126,6 +126,7 @@ USE_TZ = True
 STATIC_URL =  "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR,'static') 
 
+
 MEDIA_URL =  "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR,'media') 
 STATICFILES_FINDERS = (
@@ -133,10 +134,14 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     )
 ADMIN_MEDIA_PREFIX = '/static/admin/'
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    )
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-TOKEN = '1172097134:AAHcscJQEZk-p2_EUVdhm_NSmDe8YgX2b0g'
+TOKEN = '1813412651:AAGEigbsYSsRFbZVrCRq5UiifjgTwocBGGU'
