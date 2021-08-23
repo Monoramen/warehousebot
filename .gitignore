@@ -3,5 +3,6 @@
 .env
 **/__pycache__/
 **/migrations/
-**/buckend/media/uploads/
-**/buckend/media/static/
+*.sqlite3
+**/media/uploads/
+**/media/static/
