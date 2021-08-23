@@ -144,5 +144,6 @@ STATICFILES_FINDERS = (
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-TOKEN = '1172097134:AAHcscJQEZk-p2_EUVdhm_NSmDe8YgX2b0g' #test api
-#'1813412651:AAGEigbsYSsRFbZVrCRq5UiifjgTwocBGGU'
+TOKEN = '1813412651:AAGEigbsYSsRFbZVrCRq5UiifjgTwocBGGU'
+#'1172097134:AAHcscJQEZk-p2_EUVdhm_NSmDe8YgX2b0g' #test api
+
