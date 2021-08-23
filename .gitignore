@@ -4,5 +4,5 @@
 **/__pycache__/
 **/migrations/
 *.sqlite3
-**/buckend/media/uploads/
-**/buckend/media/static/
+**/media/uploads/
+**/media/static/

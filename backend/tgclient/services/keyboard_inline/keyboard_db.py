@@ -2,7 +2,7 @@ from re import S
 from typing import List, NamedTuple, Optional
 from tgclient.models import WarehouseItem
 import pickle
-
+from django.db.models import Q, query
 class ItemInfo(NamedTuple):
     id: int
     product: str
@@ -24,8 +24,8 @@ def update_quantity(items:list, digit:int):
     print('QUANTITY=', items.quantity)
     return WarehouseItem.objects.filter(id=items.id).update(quantity = digit)
 
-
-
+def update_rack(items:list, rack:str):
+    return WarehouseItem.objects.filter(id=items.id).update(rack = rack)
 
 class ItemFilter:
     def __init__(self) -> None:
@@ -52,3 +52,9 @@ class ItemFilter:
         else:
             items_group = [['пусто']]
         return items_group
+    @property
+    def search_set(name):
+        qs =  WarehouseItem.objects.filter(Q(product__name__icontains=name))
+        reloaded_qs = WarehouseItem.objects.all()
+        reloaded_qs.query = pickle.loads(pickle.dumps(qs.query))
+        return qs

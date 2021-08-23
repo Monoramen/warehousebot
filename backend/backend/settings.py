@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import os.path
-
+from os import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,7 +23,7 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-w556g6vv$n_wx24t#l)$)wsw5tka@wb6e=!lv6y4q&oif&pobb'
-
+print(os.environ.get("DJANGO_SECRET_KEY"))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -144,4 +144,5 @@ STATICFILES_FINDERS = (
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-TOKEN = '1813412651:AAGEigbsYSsRFbZVrCRq5UiifjgTwocBGGU'
+TOKEN = '1172097134:AAHcscJQEZk-p2_EUVdhm_NSmDe8YgX2b0g' #test api
+#'1813412651:AAGEigbsYSsRFbZVrCRq5UiifjgTwocBGGU'

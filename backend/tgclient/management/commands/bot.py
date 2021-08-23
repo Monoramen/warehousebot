@@ -1,5 +1,6 @@
 import logging
 from logging import error
+from threading import TIMEOUT_MAX
 from emoji import emojize as emg
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -23,7 +24,7 @@ from .messages import MESSAGE, data_item_pattern
 """" MENU """
 MENU, RACK, ITEMS, ITEM, EDIT = range(5)
 SHOW, DONE, BACK, SEARCH = range(4)
-CHAT_TIMEOUT=60
+CHAT_TIMEOUT=2
 
 global item_data_edit ####Turple with data selected item
 
@@ -65,7 +66,6 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
     query = update.inline_query.query
     offset = int(update.inline_query.offset) if update.inline_query.offset else 0
     logger.info('inine: %s', query)
-    results = []
     query_list = WarehouseItem.objects.filter(Q(product__name__icontains=query.strip().lower()))
     results = []
 
@@ -212,6 +212,8 @@ def cancel(update: Update, context: CallbackContext) -> int:
     update.message.reply_text(MESSAGE['bye'].format(emg(':panda_face:',  use_aliases=True)), parse_mode='Markdown')
     return ConversationHandler.END
 
+def timeout(update, context):
+   update.message.reply_text('out time has ended. good bye')
 
 class Command(BaseCommand):
     help = 'TgWarehouseBot'
@@ -255,9 +257,11 @@ class Command(BaseCommand):
                     CallbackQueryHandler(rack_menu,  pattern='^' + str(BACK) + '$'),
                     CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'), 
                     MessageHandler(Filters.regex('^\d{,5}$'), get_count),
-                ]
+                ],
+                ConversationHandler.TIMEOUT: [MessageHandler(Filters.text | Filters.command, timeout)],
                 },
             fallbacks=[CommandHandler("cancel", cancel)],
+            conversation_timeout=TIMEOUT_MAX,
             )
         dp.add_handler(menu_handler)
         dp.add_handler(InlineQueryHandler(inlinequery))
