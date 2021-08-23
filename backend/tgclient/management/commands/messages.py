@@ -22,6 +22,12 @@ EDIT_STEP = """
 *Чтобы изменить местоположение:*  _111м или 213м\n(1 - Стеллаж, 2 - Полка, 3 - Место)\n_:pushpin:
 """
 
+MENU_MSG = """
+        :black_large_square: *МЕНЮ* :black_large_square:\n
+1. В стеллажах можно просматривать и изменять элементы.\n
+2. Найти элемент (не доступно). Доступен поиск -> @WarehouseMTbot
+
+"""
 
 
 MESSAGE = {
@@ -29,6 +35,7 @@ MESSAGE = {
     'help': HELP,
     'bye': BYE, 
     'edit_step': EDIT_STEP,
+    'menu_msg': MENU_MSG,
 
 }
     

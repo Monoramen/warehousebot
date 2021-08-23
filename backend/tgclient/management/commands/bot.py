@@ -108,7 +108,7 @@ def inlinequery(update: Update, _: CallbackContext) -> None:
 def menu(update: Update, context: CallbackContext) -> None:
     logger.info('Inline MENU start: %s', update.message.from_user.username )
     """Sends a message with three inline buttons attached."""
-    update.message.reply_text(text=f"======*Выбери действие*======", reply_markup=kb.menu_kb,parse_mode='Markdown')
+    update.message.reply_text(text=emg(MESSAGE['menu_msg'], use_aliases=True), reply_markup=kb.menu_kb,parse_mode='Markdown')
     return MENU
 
 def menu_over(update, _):
