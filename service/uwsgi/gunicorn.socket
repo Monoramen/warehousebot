@@ -1,0 +1,8 @@
+[Unit]
+Description=gunicorn socket django admin
+
+[Socket]
+ListenStream=/home/ramen/www/warehousebot/run/warehousebot.sock
+
+[Install]
+WantedBy=sockets.target
