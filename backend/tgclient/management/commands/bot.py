@@ -187,13 +187,12 @@ def edit_step(update: Update, context: CallbackContext) -> None:
         return EDIT
 
 def get_count(update: Update, context: CallbackContext):
-    digit = update.message.text
-    print(digit)
-    kb.keyboard_db.update_quantity(item_data_edit, digit=int(digit))
+    string = update.message.text
+    global item_data_edit
     update.message.reply_text(
-        text=f"*Обновлено* \n",
+        text=f"*{item_data_edit.product}*\n {kb.keyboard_db.ItemEdit(item_data_edit, string).edit_handler()} \n",
         parse_mode='Markdown')
-    return DONE
+    return EDIT
 
 def done(update, _):
     """Возвращает `ConversationHandler.END`, который говорит 
@@ -213,7 +212,7 @@ def cancel(update: Update, context: CallbackContext) -> int:
     return ConversationHandler.END
 
 def timeout(update, context):
-   update.message.reply_text('out time has ended. good bye')
+    update.message.reply_text('out time has ended. good bye')
 
 class Command(BaseCommand):
     help = 'TgWarehouseBot'
@@ -256,7 +255,7 @@ class Command(BaseCommand):
                 EDIT: [
                     CallbackQueryHandler(rack_menu,  pattern='^' + str(BACK) + '$'),
                     CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'), 
-                    MessageHandler(Filters.regex('^\d{,5}$'), get_count),
+                    MessageHandler(Filters.regex(r'^[-+]?\S+$'), get_count),
                 ],
                 ConversationHandler.TIMEOUT: [MessageHandler(Filters.text | Filters.command, timeout)],
                 },

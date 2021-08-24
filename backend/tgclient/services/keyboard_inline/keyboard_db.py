@@ -1,8 +1,10 @@
-from re import S
-from typing import List, NamedTuple, Optional
-from tgclient.models import WarehouseItem
 import pickle
-from django.db.models import Q, query
+import re
+from typing import NamedTuple
+from django.db.models import Q
+from tgclient.models import WarehouseItem
+from tgclient.rack_choices import RACK_CHOICES
+
 class ItemInfo(NamedTuple):
     id: int
     product: str
@@ -19,13 +21,45 @@ def _get_info(items:list) -> ItemInfo:
         rack = item.rack
     return ItemInfo(id=id, product=product, info=info, quantity=quantity, rack=rack)
 
-def update_quantity(items:list, digit:int):
-    print('itemid', items.id)
-    print('QUANTITY=', items.quantity)
-    return WarehouseItem.objects.filter(id=items.id).update(quantity = digit)
 
-def update_rack(items:list, rack:str):
-    return WarehouseItem.objects.filter(id=items.id).update(rack = rack)
+class ItemEdit:
+    def __init__(self,  items: list, string:str) -> None:
+        self.string = string
+        self.items = items
+        self.digit = int
+        self.quantity = int
+        self.rack = str
+    def edit_handler(self):
+        patterns = [r'^[-+]?\d{,5}$', r'^\d{,3}м$']
+        for i in range(0, len(patterns), 1):
+            result = re.match(patterns[i], self.string)
+            if result and i == 0:
+                self.digit = int(result.group(0))
+                return self._update_quantity
+            if result and i == 1:
+                self.rack = 'С{}-П{}-М{}'.format(result.group(0)[0], result.group(0)[1], result.group(0)[2]) 
+                return self._update_rack
+            elif result == None:
+                return
+
+    @property
+    def _update_quantity(self):
+        if self.items.quantity + self.digit < 0:
+            return 'Ты хочешь больше чем есть'
+        else:
+            self.quantity = self.items.quantity + self.digit
+            WarehouseItem.objects.filter(id=self.items.id).update(quantity = self.quantity)
+            return f'Теперь {self.quantity} штук'
+    @property
+    def _update_rack(self):
+        choice = RACK_CHOICES.index((self.rack, self.rack))
+        print(choice)
+        if choice:
+            WarehouseItem.objects.filter(id=self.items.id).update(rack = WarehouseItem.RACK_CHOICES.self.rack)
+            return f'Теперь товар лежит тут > {self.rack}'
+        else:
+            return f'Такого места нет'
+
 
 class ItemFilter:
     def __init__(self) -> None:
