@@ -29,6 +29,7 @@ class ItemEdit:
         self.digit = int
         self.quantity = int
         self.rack = str
+        self.product =  ItemFilter().search_name(self.items.product)
     def edit_handler(self):
         patterns = [r'^[-+]?\d{,5}$', r'^\d{,3}м$']
         for i in range(0, len(patterns), 1):
@@ -47,7 +48,7 @@ class ItemEdit:
         if self.items.quantity + self.digit < 0:
             return 'Ты хочешь больше чем есть'
         else:
-            self.quantity = self.items.quantity + self.digit
+            self.quantity = self.product.quantity + self.digit
             WarehouseItem.objects.filter(id=self.items.id).update(quantity = self.quantity)
             return f'Теперь {self.quantity} штук'
     @property
