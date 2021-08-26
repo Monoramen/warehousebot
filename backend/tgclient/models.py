@@ -8,10 +8,9 @@ from io import BytesIO
 from django.core.files import File
 from PIL import Image, ImageDraw
 from django.core.files.storage import FileSystemStorage
+
 # Create your models here.
-
 media = FileSystemStorage(location='backend/media')
-
 
 # Create your models here
 class ProfileTelegram(models.Model):
@@ -39,19 +38,15 @@ class ProfileTelegram(models.Model):
         user.tg_auth_date = data.get('auth_date', '')
         return user
 
-
 class Message(models.Model):
     profile = models.ForeignKey(to='ProfileTelegram', verbose_name='Профиль', on_delete=models.PROTECT)
     text = models.TextField(default='', verbose_name='текст',)
     created_at = models.DateField(verbose_name='отправлено', auto_now_add=True)
-
     class Meta:
         verbose_name = 'Сообщение'
         verbose_name_plural = '4. Сообщения'
-
     def __str__(self):
         return f'Сообщение {self.pk} от {self.profile}'
-
 
 class Product(models.Model):
     id = models.AutoField(primary_key=True)
@@ -61,29 +56,21 @@ class Product(models.Model):
     class Meta:
         verbose_name = 'Товар'
         verbose_name_plural = '1. Наименования'
-
     def __str__(self):
         return f'{self.name}'
 
-
-
 class ItemProduct(models.Model):
-
     class Meta:
         abstract = True
     def __str__(self):
         return f'{self.product}'
 
-
-
 #Товар на полке и его количество на складе
 class WarehouseItem(ItemProduct):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='Товар')
     quantity = models.IntegerField(null=True,verbose_name='кол-во')
-    
     WAREHOUSE = 'Склад'
     WAIT = 'Ожидается'
-
     STATUS_CHOICES = [
         (WAREHOUSE, 'На Складе'),
         (WAIT, 'Ожидается'),
@@ -93,26 +80,25 @@ class WarehouseItem(ItemProduct):
     receipt_date = models.DateField(default='', editable=True, null=True, blank=True, verbose_name='Дата прибытия')
     comments = models.TextField(default='', null=True, blank=True, verbose_name='Комментарий')
     qr_code = models.ImageField(storage=media,  upload_to='uploads/qr_codes/%d-%m-%Y', blank=True, null=True,)
-
+    
     class Meta:
         verbose_name = 'Товар'
         verbose_name_plural = '2. Товары'
-
+    
     def __str__(self):
         return '"{}" - {} шт | {}'.format(self.product.name, self.quantity, self.rack)
-
+    
     def save(self, *args, **kwargs):
         qr = qrcode.QRCode(
             version=8,
             error_correction=qrcode.constants.ERROR_CORRECT_M,
             box_size=10,
-            border=1,
-        )
+            border=1
+            )
+
         qr.add_data(self.product.name)
         qr.make(fit = True)
         qrcode_img = qr.make_image(fill_color = "black", back_color = 'white')
-        print(qrcode_img.size)
-        
         canvas = Image.new('RGB', (qrcode_img.size), 'white')
         canvas.paste(qrcode_img)
         canvas.convert('RGBA')

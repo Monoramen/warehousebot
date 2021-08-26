@@ -4,15 +4,14 @@ from threading import TIMEOUT_MAX
 from emoji import emojize as emg
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.db.models import Q, query
-from telegram import (Bot, InlineKeyboardButton, InlineKeyboardMarkup,
+from django.db.models import Q
+from telegram import (Bot, InlineKeyboardButton, 
                     InlineQueryResultArticle, InputTextMessageContent,
-                    ParseMode, Update)
+                    Update)
 from telegram.ext import (CallbackContext, CallbackQueryHandler,
                         CommandHandler, ConversationHandler, Filters,
                         InlineQueryHandler, MessageHandler, Updater)
 from telegram.update import Update
-from telegram.utils.helpers import escape_markdown
 from telegram.utils.request import Request
 from tgclient.models import WarehouseItem
 from tgclient.services.barcode.detect_barcode import detect_barcode
@@ -255,7 +254,7 @@ class Command(BaseCommand):
                 EDIT: [
                     CallbackQueryHandler(rack_menu,  pattern='^' + str(BACK) + '$'),
                     CallbackQueryHandler(done, pattern='^' + str(DONE) + '$'), 
-                    MessageHandler(Filters.regex(r'^[-+]?\S+$'), get_count),
+                    MessageHandler(Filters.regex(r'^[-+]?\S{,5}$'), get_count),
                 ],
                 ConversationHandler.TIMEOUT: [MessageHandler(Filters.text | Filters.command, timeout)],
                 },

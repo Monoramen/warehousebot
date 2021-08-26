@@ -1,6 +1,7 @@
 import pickle
 import re
 from typing import NamedTuple
+from django.core.files.storage import default_storage
 from django.db.models import Q
 from tgclient.models import WarehouseItem
 from tgclient.rack_choices import RACK_CHOICES
@@ -26,26 +27,27 @@ class ItemEdit:
     def __init__(self,  items: list, string:str) -> None:
         self.string = string
         self.items = items
-        self.digit = int
-        self.quantity = int
-        self.rack = str
         self.product =  ItemFilter().search_name(self.items.product)
+        self.digit = int
+        self.rack = self.product.rack
+        self.quantity = self.product.quantity
     def edit_handler(self):
         patterns = [r'^[-+]?\d{,5}$', r'^\d{,3}м$']
         for i in range(0, len(patterns), 1):
             result = re.match(patterns[i], self.string)
+            print(patterns[i], result, self.string)
             if result and i == 0:
                 self.digit = int(result.group(0))
                 return self._update_quantity
-            if result and i == 1:
+            elif result and i == 1:
                 self.rack = 'С{}-П{}-М{}'.format(result.group(0)[0], result.group(0)[1], result.group(0)[2]) 
+                print(self.rack)
                 return self._update_rack
-            elif result == None:
-                return
+
 
     @property
     def _update_quantity(self):
-        if self.items.quantity + self.digit < 0:
+        if self.quantity + self.digit < 0:
             return 'Ты хочешь больше чем есть'
         else:
             self.quantity = self.product.quantity + self.digit
@@ -56,10 +58,10 @@ class ItemEdit:
         choice = RACK_CHOICES.index((self.rack, self.rack))
         print(choice)
         if choice:
-            WarehouseItem.objects.filter(id=self.items.id).update(rack = WarehouseItem.RACK_CHOICES.self.rack)
+            WarehouseItem.objects.filter(id=self.items.id).update(rack = RACK_CHOICES,)
             return f'Теперь товар лежит тут > {self.rack}'
         else:
-            return f'Такого места нет'
+            return f'Такого места нет {self.rack}'
 
 
 class ItemFilter:
