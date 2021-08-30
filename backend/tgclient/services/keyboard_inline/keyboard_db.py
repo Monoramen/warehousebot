@@ -35,13 +35,11 @@ class ItemEdit:
         patterns = [r'^[-+]?\d{,5}$', r'^\d{,3}м$']
         for i in range(0, len(patterns), 1):
             result = re.match(patterns[i], self.string)
-            print(patterns[i], result, self.string)
             if result and i == 0:
                 self.digit = int(result.group(0))
                 return self._update_quantity
             elif result and i == 1:
                 self.rack = 'С{}-П{}-М{}'.format(result.group(0)[0], result.group(0)[1], result.group(0)[2]) 
-                print(self.rack)
                 return self._update_rack
 
     @property
