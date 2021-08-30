@@ -4,7 +4,7 @@ from typing import NamedTuple
 from django.core.files.storage import default_storage
 from django.db.models import Q
 from tgclient.models import WarehouseItem
-from tgclient.rack_choices import RACK_CHOICES
+from .places_of_rack import PLACES
 
 class ItemInfo(NamedTuple):
     id: int
@@ -44,7 +44,6 @@ class ItemEdit:
                 print(self.rack)
                 return self._update_rack
 
-
     @property
     def _update_quantity(self):
         if self.quantity + self.digit < 0:
@@ -53,16 +52,14 @@ class ItemEdit:
             self.quantity = self.product.quantity + self.digit
             WarehouseItem.objects.filter(id=self.items.id).update(quantity = self.quantity)
             return f'Теперь {self.quantity} штук'
+
     @property
     def _update_rack(self):
-        choice = RACK_CHOICES.index((self.rack, self.rack))
-        print(choice)
-        if choice:
-            WarehouseItem.objects.filter(id=self.items.id).update(rack = RACK_CHOICES,)
+        if self.rack in PLACES:
+            WarehouseItem.objects.filter(id=self.items.id).update(rack = self.rack)
             return f'Теперь товар лежит тут > {self.rack}'
         else:
             return f'Такого места нет {self.rack}'
-
 
 class ItemFilter:
     def __init__(self) -> None:
