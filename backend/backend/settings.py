@@ -14,6 +14,7 @@ from pathlib import Path
 import os.path
 from os import environ
 from dotenv import load_dotenv
+from decouple import config
 
 load_dotenv()
 
@@ -25,12 +26,12 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "default_val")
+SECRET_KEY = config("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "default_val")
+ALLOWED_HOSTS = config("ALLOWED_HOSTS")
 
 # Application definition
 
@@ -148,5 +149,5 @@ STATICFILES_FINDERS = (
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-TOKEN = os.getenv("TELEGRAM_TOKEN", "default_val")
+TOKEN = config("TELEGRAM_TOKEN")
 
