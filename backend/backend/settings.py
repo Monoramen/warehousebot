@@ -13,9 +13,9 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from pathlib import Path
 import os.path
 from os import environ
+from dotenv import load_dotenv
 
-from decouple import config
-
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,12 +25,12 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config("DJANGO_SECRET_KEY")
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "default_val")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = config("ALLOWED_HOSTS")
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "default_val")
 
 # Application definition
 
@@ -148,5 +148,5 @@ STATICFILES_FINDERS = (
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-TOKEN = config("TELEGRAM_TOKEN")
+TOKEN = os.getenv("TELEGRAM_TOKEN", "default_val")
 
